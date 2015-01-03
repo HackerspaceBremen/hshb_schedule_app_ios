@@ -1,0 +1,96 @@
+//
+// Prefix header for all source files of the 'hackerspacehb' target in the 'hackerspacehb' project
+//
+
+#import <Availability.h>
+
+#ifndef __IPHONE_4_0
+#warning "This project uses features only available in iOS SDK 4.0 and later."
+#endif
+
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+    #import <EventKit/EventKit.h>
+    #import <QuartzCore/QuartzCore.h>
+    #import <SystemConfiguration/SystemConfiguration.h>
+    #import <MobileCoreServices/MobileCoreServices.h>
+    #import <Foundation/NSJSONSerialization.h>
+    #import "UIColor+Expanded.h"
+    #import "UIDevice+Smokebox.h"
+#endif
+
+// THIS STUFF MUST BE ZERO ON DEPLOYMENT
+#define DEBUG_MASTER                        0
+#define TESTING                             0 // uid: somename (ask admin before) pwd: somepassword
+
+// SETUP DEBUG FLAG DEFINED BY XCODE
+#ifndef DEBUG
+#define DEBUG DEBUG_MASTER
+#else
+#undef DEBUG
+#define DEBUG DEBUG_MASTER
+#endif
+
+// MATH STUFF
+#define radians(degrees) degrees * M_PI / 180
+
+// PUSH NOTIFICATIONS
+#define kUSER_DEFAULTS_DATA_PUSH_TOKEN                      @"dataPushToken"
+#define kUSER_DEFAULTS_BOOL_HAS_SUBMITTED_PUSH_TOKEN        @"boolhasSubmittedPushToken"
+
+// NSCoding strings
+#define kNSCODER_FILENAME_PREFIX @"STORED"
+#define kNSCODER_ROOT_ARCHIVE_KEY @"ROOTARCHIVE"
+
+// BACKEND OF OPENSPACE
+// https://code.google.com/p/hackerspace-bremen/wiki/Backend
+#define kHACKERSPACE_API_BASE_URL_LIVE      @"https://hackerspacehb.appspot.com/v2/"
+#define kHACKERSPACE_API_BASE_URL_TEST      @"https://testhackerspacehb.appspot.com/v2/"
+#define kHACKERSPACE_API_SSL_PINNING_NAME   @"*.appspot.com"
+
+#define kHACKERSPACE_DEFAULT_TWITTER_ACCOUNT @"hspacehb"
+
+#if TESTING
+#define kHACKERSPACE_API_BASE_URL           kHACKERSPACE_API_BASE_URL_TEST
+#else
+#define kHACKERSPACE_API_BASE_URL           kHACKERSPACE_API_BASE_URL_LIVE
+#endif
+
+#define USER_DOCUMENT_FOLDER                [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
+#define USER_OFFLINEDATA_FOLDER             [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/"]
+
+#define kUSER_DEFAULTS_OPEN_SPACE_UID       @"openSpaceUid"
+#define kUSER_DEFAULTS_OPEN_SPACE_PWD       @"openSpacePwd"
+#define kUSER_DEFAULTS_OPEN_SPACE_MSG       @"openSpaceStatusMessage"
+
+#define kOFFLINE_CALENDAR_DATA_FILENAME     @"STORED_CALENDAR_EVENT_FEED.json"
+#define kOFFLINE_EVENT_FAVORITES_FILENAME   @"STORED_EVENT_FAVORITES.plist"
+#define kCOLOR_HACKERSPACE                  [UIColor colorWithRGBHex:0x00804c]
+#define kCOLOR_HACKERSPACE_WHITE            [UIColor whiteColor]
+#define kCOLOR_HACKERSPACE_BRIGHT           [UIColor colorWithRGBHex:0x2DA65D]
+#define kCOLOR_HACKERSPACE_VERY_DARK        [UIColor colorWithRGBHex:0x13562D]
+#define kCOLOR_HACKERSPACE_VERY_BRIGHT      [UIColor colorWithRGBHex:0x48C35B]
+
+#define kBACKGROUND_QUEUE                   dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 )
+
+// EVENT FEEDS URL: https://developers.google.com/google-apps/calendar/v2/reference
+// THIS HAS MORE INFO ON THE API FOR CALENDAR FEEDS
+#define kGOOGLE_CALENDAR_ID_HACKERSPACE_HB  @"laej7omuttmt8ip063lmie548k%40group.calendar.google.com"
+#define kGOOGLE_CALENDAR_URL         [NSString stringWithFormat:@"http://www.google.com/calendar/feeds/%@/public/full?", kGOOGLE_CALENDAR_ID_HACKERSPACE_HB]
+#define kGOOGLE_CALENDAR_PARAMETERS_EXAMPLE @"alt=json&orderby=starttime&max-results=100&singleevents=true&sortorder=ascending&futureevents=false"
+
+#define kNOTIFICATION_ALERT_ALREADY_PRESENT @"notificationEventKitPresent"
+#define kNOTIFICATION_ALERT_NOT_FOUND       @"notificationEventKitNotFound"
+#define kNOTIFICATION_ALERT_SOME_ERROR      @"notificationEventKitError"
+#define kNOTIFICATION_ALERT_SUCCESS         @"notificationEventKitSuccess"
+#define kNOTIFICATION_ALERT_DELETED         @"notificationEventKitDeleted"
+#define kNOTIFICATION_ALERT_NO_ACCESS       @"notificationEventKitNoAccess"
+#define kNOTIFICATION_APP_GOES_ACTIVE       @"appGoesActive"
+#define kNOTIFICATION_APP_DATE_TIME_CHANGED @"appDateTimeChanged"
+
+// SETTINGS PLACEHOLDERS
+#define kTEXTVIEW_PLACEHOLDER @"Statusnachricht"
+#define kTEXTVIEW_FEEDBACK_COLOR_WRITE  [UIColor blackColor]
+#define kTEXTVIEW_FEEDBACK_COLOR_PLACE  [UIColor lightGrayColor]
+
