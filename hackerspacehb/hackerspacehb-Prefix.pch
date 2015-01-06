@@ -64,7 +64,7 @@
 #define kUSER_DEFAULTS_OPEN_SPACE_PWD       @"openSpacePwd"
 #define kUSER_DEFAULTS_OPEN_SPACE_MSG       @"openSpaceStatusMessage"
 
-#define kOFFLINE_CALENDAR_DATA_FILENAME     @"STORED_CALENDAR_EVENT_FEED.json"
+#define kOFFLINE_CALENDAR_DATA_FILENAME     @"STORED_CALENDAR_EVENT_FEED.data"
 #define kOFFLINE_EVENT_FAVORITES_FILENAME   @"STORED_EVENT_FAVORITES.plist"
 #define kCOLOR_HACKERSPACE                  [UIColor colorWithRGBHex:0x00804c]
 #define kCOLOR_HACKERSPACE_WHITE            [UIColor whiteColor]
@@ -77,7 +77,7 @@
 // EVENT FEEDS URL: https://developers.google.com/google-apps/calendar/v2/reference
 // THIS HAS MORE INFO ON THE API FOR CALENDAR FEEDS
 #define kGOOGLE_CALENDAR_ID_HACKERSPACE_HB  @"laej7omuttmt8ip063lmie548k%40group.calendar.google.com"
-#define kGOOGLE_CALENDAR_URL         [NSString stringWithFormat:@"http://www.google.com/calendar/feeds/%@/public/full?", kGOOGLE_CALENDAR_ID_HACKERSPACE_HB]
+#define kGOOGLE_CALENDAR_URL         [NSString stringWithFormat:@"https://www.googleapis.com/calendar/v3/calendars/%@/events", kGOOGLE_CALENDAR_ID_HACKERSPACE_HB]
 #define kGOOGLE_CALENDAR_PARAMETERS_EXAMPLE @"alt=json&orderby=starttime&max-results=100&singleevents=true&sortorder=ascending&futureevents=false"
 
 #define kNOTIFICATION_ALERT_ALREADY_PRESENT @"notificationEventKitPresent"

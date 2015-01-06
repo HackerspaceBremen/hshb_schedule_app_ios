@@ -8,7 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-@interface GoogleCalendarEvent : NSObject
+
+
+@interface GoogleCalendarEvent : NSObject <NSCoding>
 {
     NSString *uniqueId;
     NSString *originalId;

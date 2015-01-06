@@ -22,11 +22,18 @@
 #import "HSBAPIClient.h"
 #import "HSBStatus.h"
 #import "HSBError.h"
+#import "HSHBDownloadCalendarEventsOperation.h"
 
 #define kALERT_TAG_CHANGE_SPACE_STATUS  300
 #define kALERT_TAG_NO_STATUS_NO_NETWORK 301
 #define kALERT_TAG_NO_NETWORK           302
 #define kINTERSTITIAL_STEPS 99
+
+@interface CalendarViewController ()
+
+@property (nonatomic, retain) NSOperationQueue *operationQueue;
+
+@end
 
 @implementation CalendarViewController
 
@@ -73,6 +80,8 @@
     self.labelNoFavorites = nil;
     self.animatedStar = nil;
     self.refreshPopLabel = nil;
+    self.operationQueue = nil;
+
     [super dealloc];
 }
 
@@ -140,21 +149,30 @@
     }    
 }
 
-- (void) refreshCalendarDataFromUrl:(NSString*)urlString {
-    if( DEBUG ) NSLog( @"LOADING FROM REMOTE URL... %@", urlString );
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+- (void)refreshCalendFromInternet {
+
     self.isRefreshingCalendarData = YES;
 
-    // FETCH IN BG
-    dispatch_queue_t downloadAndProcessQueue;
-    downloadAndProcessQueue = dispatch_queue_create("com.noxymo.downloadAndProcessQueue", NULL);
+    HSHBDownloadCalendarEventsOperation *downloadCalendarEventsOperation = [HSHBDownloadCalendarEventsOperation new];
 
-    dispatch_async(downloadAndProcessQueue, ^{
-        NSURL *dataUrl = [NSURL URLWithString:urlString];
-        NSData* data = [NSData dataWithContentsOfURL:dataUrl];
-        
-        if( data && [data length] > 500 ) {
-            // SAVE INFOS
+    NSOperation *saveAndProcessOperation = [NSBlockOperation blockOperationWithBlock:^{
+
+        NSArray *events = downloadCalendarEventsOperation.events;
+
+        if (!events || downloadCalendarEventsOperation.error) {
+
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+
+                if( DEBUG ) NSLog( @"NO FETCHED DATA TO DISPLAY/PARSE." );
+
+                [self displayAlertNoConnection];
+
+            }];
+
+        } else {
+
+            NSData *data = [NSKeyedArchiver archivedDataWithRootObject:events];
+
             NSString *pathToStoreFile = [USER_OFFLINEDATA_FOLDER stringByAppendingPathComponent:kOFFLINE_CALENDAR_DATA_FILENAME];
             BOOL hasStoredFile = [data writeToFile:pathToStoreFile atomically:YES];
             if( !hasStoredFile ) {
@@ -163,17 +181,24 @@
             else {
                 if( DEBUG ) NSLog( @"SAVED DATA SUCCESSFULLY." );
             }
-            [self fetchedData:data];
-            
-            [self performSelectorOnMainThread:@selector(updateAfterRefreshUI) withObject:nil waitUntilDone:YES];
-        }
-        else {
-            if( DEBUG ) NSLog( @"NO FETCHED DATA TO DISPLAY/PARSE." );
-            [self performSelectorOnMainThread:@selector(displayAlertNoConnection) withObject:data waitUntilDone:YES];
-        }
-        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-    });
 
+            [self processEvents:events];
+
+
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+
+                [self updateAfterRefreshUI];
+
+            }];
+
+        }
+    }];
+
+    [saveAndProcessOperation addDependency:downloadCalendarEventsOperation];
+    [self.operationQueue addOperation:saveAndProcessOperation];
+
+    [self.operationQueue addOperation:downloadCalendarEventsOperation];
+    [downloadCalendarEventsOperation release];
 }
 
 - (void) updateAfterRefreshUI {
@@ -187,7 +212,10 @@
         self.isRefreshingCalendarData = YES;
         NSURL *dataUrl = [NSURL fileURLWithPath:pathToStoredFile];
         NSData* data = [NSData dataWithContentsOfURL:dataUrl];
-        [self fetchedData:data];
+
+        NSArray *events = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+
+        [self processEvents:events];
         // UPDATE UI
         [self updateAfterRefreshUI];
     }
@@ -275,59 +303,6 @@
     }
 }
 
-- (NSString*) googleCalendarUrlString {
-    NSMutableString *urlString = [NSMutableString string];
-    
-    // FETCH RANGE FOR EVENTS
-    NSDateComponents *componentsDate = nil;
-    CGFloat daysIntoFuture = 100.0;
-    CGFloat daysIntoPast = 365.0;
-    NSInteger maxResultsExpected = [[NSNumber numberWithFloat:( (daysIntoFuture + daysIntoPast) * 1.5f )] integerValue];
-    
-    NSTimeInterval timeIntervalFuture = 60.0f * 60.0f * 24.0f * daysIntoFuture; // IN SECONDS
-    NSTimeInterval timeIntervalPast = 60.0f * 60.0f * 24.0f * daysIntoPast; // IN SECONDS
-
-    NSCalendar *calendar = [[NSCalendar currentCalendar] retain];
-    
-    NSDate *nowDate = [[NSDate date] retain];
-    NSDate *fromDate = [[nowDate dateByAddingTimeInterval:-timeIntervalPast] retain];
-    NSDate *toDate = [[nowDate dateByAddingTimeInterval:timeIntervalFuture] retain];
-    
-    NSUInteger units = (NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit );
-    
-    componentsDate = [calendar components:units fromDate:fromDate];
-    NSInteger fromYear = componentsDate.year;
-    NSInteger fromMonth = componentsDate.month;
-    NSInteger fromDay = componentsDate.day;
-    
-    componentsDate = [calendar components:units fromDate:toDate];
-    NSInteger toYear = componentsDate.year;
-    NSInteger toMonth = componentsDate.month;
-    NSInteger toDay = componentsDate.day;
-    
-    // BASEURL (CONTAINS API KEY)
-    [urlString appendString:kGOOGLE_CALENDAR_URL];
-    
-    // PARAMETERS
-    [urlString appendString:@"alt=json"];
-    [urlString appendString:@"&orderby=starttime"];
-    [urlString appendFormat:@"&start-min=%i-%02d-%02dT00:00:00", fromYear, fromMonth, fromDay];
-    [urlString appendFormat:@"&start-max=%i-%02d-%02dT23:59:59", toYear, toMonth, toDay];
-    [urlString appendFormat:@"&max-results=%i", maxResultsExpected];
-    [urlString appendString:@"&singleevents=true"];
-    [urlString appendString:@"&sortorder=ascending"];
-    
-    if( DEBUG ) NSLog( @"GOOGLE CAL API v2" );
-    if( DEBUG ) NSLog( @"FETCHING: %@", urlString );
-    
-    [nowDate release];
-    [fromDate release];
-    [toDate release];
-    [calendar release];
-    
-    return [NSString stringWithString:urlString];
-}
-
 - (void) refreshCalendarData {
     if( DEBUG ) NSLog( @"CHECKING IF WE NEED NEW CALENDAR UPDATE..." );
     NSString *pathToCacheFile = [USER_OFFLINEDATA_FOLDER stringByAppendingPathComponent:kOFFLINE_CALENDAR_DATA_FILENAME];
@@ -350,7 +325,7 @@
     if( ![self appDelegate].hasRefreshedDataAfterStartup || needsUpdateOfCalendar ) {
         if( DEBUG ) NSLog( @"CACHE DATA NEEDS UPDATE..." );
         [self appDelegate].hasRefreshedDataAfterStartup = YES;
-        [self refreshCalendarDataFromUrl:[self googleCalendarUrlString]];
+        [self refreshCalendFromInternet];
     }
     else {
         if( DEBUG ) NSLog( @"CACHE DATA STILL OKAY." );
@@ -693,7 +668,7 @@
 
 - (IBAction) actionRefreshPulled:(id)sender {
     [self.refreshControl beginRefreshing];
-    [self refreshCalendarDataFromUrl:[self googleCalendarUrlString]];
+    [self refreshCalendFromInternet];
 }
 
 - (IBAction) actionDisplayStatusInfo:(UIBarButtonItem*)sender {
@@ -755,7 +730,7 @@
 }
 
 - (IBAction) actionRefreshCalendarManually:(id)sender {
-    [self refreshCalendarDataFromUrl:[self googleCalendarUrlString]];
+    [self refreshCalendFromInternet];
 }
 
 - (IBAction) actionFavoriteEvent:(UIButton*)favButton {
@@ -1424,99 +1399,20 @@
     [segmentedControlMenu setTitle:favoritesTitle forSegmentAtIndex:[segmentedControlMenu numberOfSegments]-1]; // last item
 }
 
-- (void)fetchedData:(NSData *)responseData {
-    if( !responseData ) return;
+- (void)processEvents:(NSArray *)events
+{
+    if(!events) return;
     
     self.eventsInCalender = [NSMutableArray array];
     
-    // PARSE JSON
-    NSError *error = nil;
-    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:responseData options:kNilOptions error:&error];
-    
-    NSDictionary* feedItems = [json objectForKey:@"feed"];
-    NSArray* eventEntries = [feedItems objectForKey:@"entry"];
+    for (GoogleCalendarEvent *event in events) {
 
-    NSDateFormatter *df = [[NSDateFormatter alloc] init];
-    JTISO8601DateFormatter *isoDf = [[JTISO8601DateFormatter alloc] init];
-    NSLocale *enUSPOSIXLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
-    
-    if( DEBUG ) NSLog( @"%lu EVENTS REGISTERED.", (unsigned long)[eventEntries count] );
-    NSUInteger i = 0;
-    for( NSDictionary *currentEvent in eventEntries ) {
-        i++;
-        GoogleCalendarEvent *calendarEventToAdd = [[[GoogleCalendarEvent alloc] init] autorelease];
-        
-        NSDictionary *eventTitle = [currentEvent objectForKey:@"title"];
-        calendarEventToAdd.Title = [eventTitle objectForKey:@"$t"];
+        event.isMarkedAsFavorite = [self appDelegate].storedFavoriteEvents[event.uniqueId] != nil;
 
-        
-        NSDictionary *originalIdDict = [currentEvent objectForKey:@"gd$originalEvent"];
-        calendarEventToAdd.originalId = [originalIdDict objectForKey:@"id"];
+        [self.eventsInCalender addObject:event];
 
-        if( i < 10 ) {
-            if( NO ) NSLog( @"currentEvent = %@", currentEvent );
-        }
-        
-        // EXTRACT PUBLIC CALENDAR LINK
-        NSDictionary *alternateLinksArray = [currentEvent objectForKey:@"link"];
-        
-        if( alternateLinksArray && [alternateLinksArray count] > 0 ) {
-            for( NSDictionary *currentDict in alternateLinksArray ) {
-                NSString *rel = [currentDict objectForKey:@"rel"];
-                if( rel && [[rel lowercaseString] isEqualToString:@"alternate"] ) {
-                    calendarEventToAdd.publicCalendarUrl = [currentDict objectForKey:@"href"];
-                }
-            }
-        }
-
-        // NSDictionary *uniqueIdDict = [currentEvent objectForKey:@"gCal$uid"];
-        // calendarEventToAdd.uniqueId = [uniqueIdDict objectForKey:@"value"];
-        NSDictionary *uniqueIdDict = [currentEvent objectForKey:@"id"];
-        calendarEventToAdd.uniqueId = [uniqueIdDict objectForKey:@"$t"];
-        // if( DEBUG ) NSLog( @"%@", calendarEventToAdd.uniqueId ? calendarEventToAdd.uniqueId : @"[NIL]" );
-        
-        // if( DEBUG ) NSLog( @"%@", calendarEventToAdd.originalId ? calendarEventToAdd.originalId : @"[NIL]" );
-
-        NSArray *whereArray = [currentEvent objectForKey:@"gd$where"];
-        if( whereArray && [whereArray count] > 0 ) {
-            NSDictionary *firstWhere = [whereArray objectAtIndex:0];
-            calendarEventToAdd.where = [firstWhere objectForKey:@"valueString"];
-        }
-
-        
-        
-        // Convert string to date object
-        [df setLocale:enUSPOSIXLocale];
-        [df setDateFormat:@"yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"];
-        [df setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-        
-        // EXTRACT/PARSE ISO DATES
-        NSArray *dateArr = [currentEvent objectForKey:@"gd$when"];
-        for( NSDictionary *dateDict in dateArr ) {
-                        
-            NSDate *endDate = [isoDf dateFromString:[dateDict objectForKey:@"endTime"]];
-            NSDate *startDate = [isoDf dateFromString:[dateDict objectForKey:@"startTime"]];
-            
-            calendarEventToAdd.EndDate = endDate;
-            calendarEventToAdd.StartDate = startDate;
-            // if( DEBUG ) NSLog(@"Event(A): %@", [dateDict objectForKey:@"endTime"]);
-            // if( DEBUG ) NSLog(@"Event(B): %@\n", calendarEventToAdd.EndDate);
-            
-        }
-        
-        NSDictionary *content = [currentEvent objectForKey:@"content"];
-        calendarEventToAdd.Description = [content objectForKey:@"$t"];
-        
-        // CHECK IF ALREADY FAVOURITE
-        BOOL isFavorited = ( [[self appDelegate].storedFavoriteEvents objectForKey:calendarEventToAdd.uniqueId] != nil );
-        calendarEventToAdd.isMarkedAsFavorite = isFavorited;
-        
-        [eventsInCalender addObject:calendarEventToAdd];        
     }
-    [enUSPOSIXLocale release], enUSPOSIXLocale = nil;
-    [df release], df = nil;
-    [isoDf release], isoDf = nil;
-    
+
     // CREATE DATASTRUCTURE FOR CURRENT SET
     self.eventListCurrent = [NSMutableDictionary dictionary];
     self.eventSectionKeysCurrent = [NSMutableArray array];
@@ -1767,6 +1663,19 @@ CGPoint leftMapNormalPosition;
 	// step 2: setup animation path
 	[self addAnimationPathToLayer:[self.animatedStar layer] fromPoint:startPoint];
 	[self animateViewPart1:self.animatedStar];
+}
+
+- (NSOperationQueue *)operationQueue
+{
+    if (_operationQueue) {
+        return _operationQueue;
+    }
+
+    NSOperationQueue *operationQueue = [NSOperationQueue new];
+    self.operationQueue = operationQueue;
+    [operationQueue release];
+
+    return operationQueue;
 }
 
 
