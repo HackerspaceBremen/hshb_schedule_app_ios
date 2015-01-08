@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		321E1735FCAEAFC839B29C3F /* NSString+HSHBAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 321E19C6D845E08E14760479 /* NSString+HSHBAdditions.m */; };
+		321E19DAFC549B2557E58892 /* HSHBDownloadCalendarEventsOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 321E197D5F36A3250AEA38FE /* HSHBDownloadCalendarEventsOperation.m */; };
+		321E19FF94FA782F531F24B3 /* GoogleCalendarEvent+HSHBAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 321E1634660853870ACD4F6C /* GoogleCalendarEvent+HSHBAdditions.m */; };
 		8F21CF5B17E516D700902F48 /* sign_yellow.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F21CF5917E516D700902F48 /* sign_yellow.png */; };
 		8F21CF5C17E516D700902F48 /* sign_yellow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F21CF5A17E516D700902F48 /* sign_yellow@2x.png */; };
 		8F21CF6317E52BAE00902F48 /* Icon_60.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F21CF5F17E52BAE00902F48 /* Icon_60.png */; };
@@ -115,6 +118,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		321E13CDA24E3EBA3E011735 /* NSString+HSHBAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+HSHBAdditions.h"; sourceTree = "<group>"; };
+		321E1634660853870ACD4F6C /* GoogleCalendarEvent+HSHBAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GoogleCalendarEvent+HSHBAdditions.m"; sourceTree = "<group>"; };
+		321E197D5F36A3250AEA38FE /* HSHBDownloadCalendarEventsOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HSHBDownloadCalendarEventsOperation.m; sourceTree = "<group>"; };
+		321E19C6D845E08E14760479 /* NSString+HSHBAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+HSHBAdditions.m"; sourceTree = "<group>"; };
+		321E1D55F3EFEB216E943968 /* HSHBDownloadCalendarEventsOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HSHBDownloadCalendarEventsOperation.h; sourceTree = "<group>"; };
+		321E1E6ABF80651F14351C64 /* GoogleCalendarEvent+HSHBAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GoogleCalendarEvent+HSHBAdditions.h"; sourceTree = "<group>"; };
 		8F21CF5917E516D700902F48 /* sign_yellow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sign_yellow.png; sourceTree = SOURCE_ROOT; };
 		8F21CF5A17E516D700902F48 /* sign_yellow@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "sign_yellow@2x.png"; sourceTree = SOURCE_ROOT; };
 		8F21CF5F17E52BAE00902F48 /* Icon_60.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon_60.png; sourceTree = SOURCE_ROOT; };
@@ -297,6 +306,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		321E1AF126D7A39264D4FF46 /* Categories */ = {
+			isa = PBXGroup;
+			children = (
+				321E13CDA24E3EBA3E011735 /* NSString+HSHBAdditions.h */,
+				321E1634660853870ACD4F6C /* GoogleCalendarEvent+HSHBAdditions.m */,
+				321E1E6ABF80651F14351C64 /* GoogleCalendarEvent+HSHBAdditions.h */,
+				321E19C6D845E08E14760479 /* NSString+HSHBAdditions.m */,
+			);
+			path = Categories;
+			sourceTree = "<group>";
+		};
 		8F0EA0671A586F90003C5EDE /* 3rdparty stuff */ = {
 			isa = PBXGroup;
 			children = (
@@ -387,6 +407,7 @@
 				8FADE5B417E4FA8100C2962E /* Settings */,
 				8FFE080217E22F6D00B53224 /* Event Details */,
 				8F46846B17DE19EB00D2137D /* Supporting Files */,
+				321E1AF126D7A39264D4FF46 /* Categories */,
 			);
 			path = hackerspacehb;
 			sourceTree = "<group>";
@@ -602,6 +623,8 @@
 				8F4684B317DE726F00D2137D /* CalendarViewController.h */,
 				8F4684B417DE726F00D2137D /* CalendarViewController.m */,
 				8F4684B517DE727000D2137D /* CalendarViewController.xib */,
+				321E1D55F3EFEB216E943968 /* HSHBDownloadCalendarEventsOperation.h */,
+				321E197D5F36A3250AEA38FE /* HSHBDownloadCalendarEventsOperation.m */,
 			);
 			name = "Event Calendar";
 			sourceTree = "<group>";
@@ -786,6 +809,9 @@
 				8F21CF6E17E5D46000902F48 /* NSString+AdditionEmpty.m in Sources */,
 				8F21CF6F17E5D46000902F48 /* RegexKitLite.m in Sources */,
 				8F21CF7017E5D46000902F48 /* UIDevice+Smokebox.m in Sources */,
+				321E19DAFC549B2557E58892 /* HSHBDownloadCalendarEventsOperation.m in Sources */,
+				321E19FF94FA782F531F24B3 /* GoogleCalendarEvent+HSHBAdditions.m in Sources */,
+				321E1735FCAEAFC839B29C3F /* NSString+HSHBAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
