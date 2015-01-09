@@ -78,7 +78,17 @@
     
     [df release], df = nil;
     titleLabel.text = eventToDisplay.Title;
-    descriptionTextView.text = [NSString stringWithFormat:@"%@\n\nVeranstaltungsort:\n%@", eventToDisplay.Description, eventToDisplay.where];
+    NSMutableString *descriptionText = [NSMutableString string];
+    if( eventToDisplay.Description ) {
+        [descriptionText appendFormat:@"%@", eventToDisplay.Description];
+    }
+    if( eventToDisplay.where ) {
+        if( [descriptionText length] > 0 ) {
+            [descriptionText appendString:@"\n\n"];
+        }
+        [descriptionText appendFormat:@"%@", eventToDisplay.where];
+    }
+    descriptionTextView.text = [NSString stringWithString:descriptionText];
     
     // CONFIGURE TOOLBAR
     if( NO ) {

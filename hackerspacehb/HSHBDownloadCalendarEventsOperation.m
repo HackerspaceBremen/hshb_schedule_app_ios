@@ -129,8 +129,7 @@
     }
     [urlString appendString:@"&singleEvents=true"];
 
-    NSString * const APIToken = @"???"; // TODO: insert API Token here
-    [urlString appendFormat:@"&key=%@", APIToken];
+    [urlString appendFormat:@"&key=%@", [kGOOGLE_CALENDAR_API_KEY hshb_urlEncodedWithEncoding:NSUTF8StringEncoding]];
 
     [now release];
     [calendar release];

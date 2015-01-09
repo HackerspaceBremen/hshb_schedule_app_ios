@@ -56,8 +56,9 @@
         self.extendedLayoutIncludesOpaqueBars = NO;
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }   
-    NSString *buildVersionString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleVersion"];
-    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen v%@\n2014 by appdoctors.de, Helge Städtler", buildVersionString];
+    NSString *buildVersionString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleShortVersionString"];
+    NSString *buildNumberString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleVersion"];
+    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen v%@ / %@\n2014 by appdoctors.de, Helge Städtler", buildVersionString, buildNumberString];
 
     if( [[UIDevice currentDevice] isOS_7] ) {
         self.view.backgroundColor = kCOLOR_HACKERSPACE;

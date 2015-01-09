@@ -310,9 +310,9 @@
 			isa = PBXGroup;
 			children = (
 				321E13CDA24E3EBA3E011735 /* NSString+HSHBAdditions.h */,
-				321E1634660853870ACD4F6C /* GoogleCalendarEvent+HSHBAdditions.m */,
-				321E1E6ABF80651F14351C64 /* GoogleCalendarEvent+HSHBAdditions.h */,
 				321E19C6D845E08E14760479 /* NSString+HSHBAdditions.m */,
+				321E1E6ABF80651F14351C64 /* GoogleCalendarEvent+HSHBAdditions.h */,
+				321E1634660853870ACD4F6C /* GoogleCalendarEvent+HSHBAdditions.m */,
 			);
 			path = Categories;
 			sourceTree = "<group>";
@@ -450,6 +450,9 @@
 		8F4684A417DE1B5700D2137D /* images */ = {
 			isa = PBXGroup;
 			children = (
+				8F46847617DE19EB00D2137D /* Default.png */,
+				8F46847817DE19EB00D2137D /* Default@2x.png */,
+				8F46847A17DE19EB00D2137D /* Default-568h@2x.png */,
 				8FA5D2731951B79A00237548 /* star_button_selected.png */,
 				8F832363194F192C006904BE /* icon_browser.png */,
 				8F832364194F192C006904BE /* icon_browser@2x.png */,
@@ -483,9 +486,6 @@
 				8F4684C117DE75C600D2137D /* icon_calendar.png */,
 				8F4684A517DE1C6000D2137D /* Icon.png */,
 				8F4684A617DE1C6000D2137D /* Icon@2x.png */,
-				8F46847617DE19EB00D2137D /* Default.png */,
-				8F46847817DE19EB00D2137D /* Default@2x.png */,
-				8F46847A17DE19EB00D2137D /* Default-568h@2x.png */,
 			);
 			name = images;
 			sourceTree = "<group>";

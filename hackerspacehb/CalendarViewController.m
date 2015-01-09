@@ -155,6 +155,7 @@
 
     HSHBDownloadCalendarEventsOperation *downloadCalendarEventsOperation = [HSHBDownloadCalendarEventsOperation new];
 
+    if( DEBUG ) NSLog( @"STARTING OPERATION..." );
     NSOperation *saveAndProcessOperation = [NSBlockOperation blockOperationWithBlock:^{
 
         NSArray *events = downloadCalendarEventsOperation.events;
@@ -1171,7 +1172,11 @@
 
     NSString *hoursOpen = [NSString stringWithFormat:@"%@, %@ bis %@ Uhr", startDateStr, [df stringFromDate:currentGoogleEvent.StartDate], [df stringFromDate:currentGoogleEvent.EndDate]];
     cell.textLabel.text = [NSString stringWithFormat:@"%@", currentGoogleEvent.Title ];
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@\n%@", hoursOpen, currentGoogleEvent.Description];
+    NSString *descriptionString = hoursOpen;
+    if( currentGoogleEvent.Description ) {
+        descriptionString = [NSString stringWithFormat:@"%@\n%@", descriptionString, currentGoogleEvent.Description];
+    }
+    cell.detailTextLabel.text = descriptionString;
     
     
     // NOT PERFORMING TOO WELL

@@ -74,11 +74,13 @@
 
 #define kBACKGROUND_QUEUE                   dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 )
 
+// THERE DOES EXIST A COMPLICATED LIBRARY https://code.google.com/p/google-api-objectivec-client/
 // EVENT FEEDS URL: https://developers.google.com/google-apps/calendar/v2/reference
-// THIS HAS MORE INFO ON THE API FOR CALENDAR FEEDS
-#define kGOOGLE_CALENDAR_ID_HACKERSPACE_HB  @"laej7omuttmt8ip063lmie548k%40group.calendar.google.com"
+// API FOR GOOGLE CALENDAR
+#define kGOOGLE_CALENDAR_API_KEY                @"" // NEEDS VALID KEY FOR DEPLOYMENT
+#define kGOOGLE_CALENDAR_ID_HACKERSPACE_HB      @"laej7omuttmt8ip063lmie548k%40group.calendar.google.com"
 #define kGOOGLE_CALENDAR_URL         [NSString stringWithFormat:@"https://www.googleapis.com/calendar/v3/calendars/%@/events", kGOOGLE_CALENDAR_ID_HACKERSPACE_HB]
-#define kGOOGLE_CALENDAR_PARAMETERS_EXAMPLE @"alt=json&orderby=starttime&max-results=100&singleevents=true&sortorder=ascending&futureevents=false"
+#define kGOOGLE_CALENDAR_PARAMETERS_EXAMPLE     @"alt=json&orderby=starttime&max-results=100&singleevents=true&sortorder=ascending&futureevents=false"
 
 #define kNOTIFICATION_ALERT_ALREADY_PRESENT @"notificationEventKitPresent"
 #define kNOTIFICATION_ALERT_NOT_FOUND       @"notificationEventKitNotFound"

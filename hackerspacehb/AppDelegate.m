@@ -81,6 +81,8 @@
     if( DEBUG ) NSLog( @"REMOVED EVENT: %@", event.Title );
 }
 
+#pragma mark - app status
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.hasRefreshedDataAfterStartup = NO;
