@@ -28,10 +28,18 @@ Die App stellt **folgende Funktionen** bereit:
 * Push-Benachrichtigung wann immer der Hackerspace öffnet
 * Push-Benachrichtigung rechtzeitig vor Special Events
 
+## Versionen
+
+* Version 1.4 (17.1.2015)
+* Version 1.3 (25.6.2014)
+* Version 1.2 (23.1.2014)
+* Version 1.1 (22.11.2013)
+* Version 1.0 (26.9.2013)
+
 ## Kontakt
 Wer Vorschläge hat für die App, z.B. zur **weiteren Verbesserung**, der kann diese gerne übermitteln an zum Beispiel [trailblazr@noxymo.com](mailto:trailblazr@noxymo.com) oder per Twitter an [@hspacehb](http://twitter.com/@hspacehb) den Twitter-Account des [Hackerspace Bremen](https://www.hackerspace-bremen.de/).
 
-Eine weitere Möglichkeit besteht darin, die [CoccoaHeads Bremen](http://cocoaheads.org:8106/de/Bremen/index.html) Gruppe zu besuchen, die sich einmal im Monat im Hackerspace trifft.
+Eine weitere Möglichkeit besteht darin, die [CocoaHeads Bremen](http://cocoaheads.org:8106/de/Bremen/index.html) Gruppe zu besuchen, die sich einmal im Monat im Hackerspace trifft.
 
 ## API
 Die App nutzt das [OpenSpace Notifier Backend](https://code.google.com/p/hackerspace-bremen/wiki/Backend) bzw. kommuniziert mit dem [OpenSpace-Melder](https://hackerspacehb.appspot.com/). 
