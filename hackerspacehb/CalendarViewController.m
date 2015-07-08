@@ -508,11 +508,23 @@
     // [self setNeedsStatusBarAppearanceUpdate];
     self.navigationItem.title = TESTING ? @"Ereignisse (SANDBOX)" : @"Ereignisse";
     // ADD TABLE HEADER
-    UIImageView *headerImageView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tableheader.png"]] autorelease];
-    headerImageView.contentMode = UIViewContentModeCenter;
-    headerImageView.backgroundColor = [UIColor whiteColor];
-    headerImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    self.tableView.tableHeaderView = headerImageView;
+    UIView *headerView = [[[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 100.0)] autorelease];
+    headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    headerView.backgroundColor = [UIColor whiteColor];
+    headerView.contentMode = UIViewContentModeCenter;
+   
+    UIImageView *headerImageLeft = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tableheader_left"]] autorelease];
+    headerImageLeft.backgroundColor = [UIColor clearColor];
+    headerImageLeft.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
+    [headerView addSubview:headerImageLeft];
+
+    UIImageView *headerImageRight = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tableheader_right"]] autorelease];
+    headerImageRight.frame = CGRectMake(self.view.frame.size.width-100.0, 0.0, 100.0, 100.0);
+    headerImageRight.backgroundColor = [UIColor clearColor];
+    headerImageRight.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    [headerView addSubview:headerImageRight];
+    
+    self.tableView.tableHeaderView = headerView;
     
     // PULL TO REFRESH CONTROL
     UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
