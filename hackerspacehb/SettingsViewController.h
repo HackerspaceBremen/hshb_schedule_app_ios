@@ -20,7 +20,9 @@
     IBOutlet UILabel *pwdLabel;
     IBOutlet UILabel *msgLabel;
     IBOutlet UILabel *infoLabel;
+    IBOutlet UISegmentedControl *spaceMessageControl;
     BOOL isEditingTextView;
+    NSMutableDictionary *spaceMessages;
     
 }
 
@@ -33,6 +35,8 @@
 @property( nonatomic, retain ) UILabel *pwdLabel;
 @property( nonatomic, retain ) UILabel *msgLabel;
 @property( nonatomic, retain ) UILabel *infoLabel;
+@property( nonatomic, retain ) UISegmentedControl *spaceMessageControl;
+@property( nonatomic, retain ) NSMutableDictionary *spaceMessages;
 @property( nonatomic, assign ) BOOL isEditingTextView;
 
 - (IBAction) actionTextContentDidChange:(UITextField*)textField;

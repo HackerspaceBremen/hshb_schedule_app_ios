@@ -38,6 +38,8 @@
 // PUSH NOTIFICATIONS
 #define kUSER_DEFAULTS_DATA_PUSH_TOKEN                      @"dataPushToken"
 #define kUSER_DEFAULTS_BOOL_HAS_SUBMITTED_PUSH_TOKEN        @"boolhasSubmittedPushToken"
+#define kUSER_DEFAULTS_SPACE_MESSAGES                       @"dictionarySpaceMessages"
+#define kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE                 @"integerSpaceMessageActiveIndex"
 
 // NSCoding strings
 #define kNSCODER_FILENAME_PREFIX @"STORED"
@@ -77,10 +79,13 @@
 // THERE DOES EXIST A COMPLICATED LIBRARY https://code.google.com/p/google-api-objectivec-client/
 // EVENT FEEDS URL: https://developers.google.com/google-apps/calendar/v2/reference
 // API FOR GOOGLE CALENDAR
-#define kGOOGLE_CALENDAR_API_KEY                @"" // NEEDS VALID KEY FOR DEPLOYMENT
+#define kGOOGLE_CALENDAR_API_KEY                @"AIzaSyD8lzSegWMGjEVb8Z0_bYokNywmhGSo70s" // NEEDS VALID KEY FOR DEPLOYMENT
 #define kGOOGLE_CALENDAR_ID_HACKERSPACE_HB      @"laej7omuttmt8ip063lmie548k%40group.calendar.google.com"
 #define kGOOGLE_CALENDAR_URL         [NSString stringWithFormat:@"https://www.googleapis.com/calendar/v3/calendars/%@/events", kGOOGLE_CALENDAR_ID_HACKERSPACE_HB]
 #define kGOOGLE_CALENDAR_PARAMETERS_EXAMPLE     @"alt=json&orderby=starttime&max-results=100&singleevents=true&sortorder=ascending&futureevents=false"
+
+#define kGOOGLE_CALENDAR_API_APP_KEY_TESTING    @"AIzaSyBVYYgoXUmXoig9Xef1Xjx–QF4KaoLDN0"
+#define kGOOGLE_CALENDAR_API_APP_KEY_LIVE       @"AIzaSyDqBFVgk-P3Pp2RtphlMvYUei5yXPGX0Og"
 
 #define kNOTIFICATION_ALERT_ALREADY_PRESENT @"notificationEventKitPresent"
 #define kNOTIFICATION_ALERT_NOT_FOUND       @"notificationEventKitNotFound"

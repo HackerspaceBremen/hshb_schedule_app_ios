@@ -685,7 +685,7 @@
             NSDateFormatter *df = [[NSDateFormatter alloc] init];
             df.doesRelativeDateFormatting = YES;
             // df.timeZone = [[[NSTimeZone alloc] initWithName:@"GMT+2"] autorelease];
-            df.timeStyle = NSDateFormatterMediumStyle;
+            df.timeStyle = NSDateFormatterShortStyle;
             df.dateStyle = NSDateFormatterLongStyle;
             niceFormattedDate = [df stringFromDate:[hackerspaceBremenStatus dateOfLastChangeStatus]];
             [df release];
@@ -693,7 +693,7 @@
         @catch (NSException *exception) {
             //
         }
-        stateString = [NSString stringWithFormat:@"%@ seit %@ (in deiner lokalen Zeit)", stateString, niceFormattedDate];
+        stateString = [NSString stringWithFormat:@"%@ seit %@ (Ortszeit)", stateString, niceFormattedDate];
     }
     
     UIAlertView *alert = nil;
@@ -707,18 +707,26 @@
     }
     NSMutableString *contactString = [NSMutableString string];
     if( hackerspaceBremenStatus.spaceContact ) {
+        [contactString appendString:@"\n\nKontakt: "];
         if( hackerspaceBremenStatus.spaceContact.phone && [hackerspaceBremenStatus.spaceContact.phone length] > 0 ) {
-            [contactString appendFormat:@"\n\nTelefon: %@", hackerspaceBremenStatus.spaceContact.phone];
+            [contactString appendFormat:@"%@", hackerspaceBremenStatus.spaceContact.phone];
         }
         if( hackerspaceBremenStatus.spaceContact.email && [hackerspaceBremenStatus.spaceContact.email length] > 0 ) {
-            [contactString appendFormat:@"\nE-Mail: %@", hackerspaceBremenStatus.spaceContact.email];
+            [contactString appendFormat:@", %@", hackerspaceBremenStatus.spaceContact.email];
         }
         if( hackerspaceBremenStatus.spaceContact.twitter && [hackerspaceBremenStatus.spaceContact.twitter length] > 0 ) {
-            [contactString appendFormat:@"\nTwitter: %@", hackerspaceBremenStatus.spaceContact.twitter];
+            [contactString appendFormat:@", %@", hackerspaceBremenStatus.spaceContact.twitter];
         }
     }
     if( canManageSpace ) {
-        messageString = [NSString stringWithFormat:@"Der %@, %@ ist jetzt %@.%@%@\n\nDu bist Keykeeper und möchtest den Space %@, dann tippe auf '%@'.", hackerspaceBremenStatus.spaceName, hackerspaceBremenStatus.spaceAddress, stateString, spaceStateReason, contactString,actionString,doorActionString];
+        NSString *openMessage = nil;
+        openMessage = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
+        if( !openMessage || [openMessage length] == 0 ) {
+            openMessage = @"(Keine Nachricht gesetzt.)";
+        }
+        NSString *spaceMessage = [hackerspaceBremenStatus.spaceIsOpen boolValue] ? [NSString stringWithFormat:@"."] : [NSString stringWithFormat:@" mit folgender Nachricht:\n\n%@", openMessage];
+        
+        messageString = [NSString stringWithFormat:@"Der %@, %@ ist %@.%@%@\n\nDu bist Keykeeper und möchtest den Space %@, dann tippe auf '%@'%@", hackerspaceBremenStatus.spaceName, hackerspaceBremenStatus.spaceAddress, stateString, spaceStateReason, contactString,actionString,doorActionString, spaceMessage];
         alert = [[UIAlertView alloc] initWithTitle:@"Information" message:messageString delegate:self cancelButtonTitle:doorActionString otherButtonTitles:@"OK", nil];
     }
     else {
@@ -753,7 +761,7 @@
 
 - (IBAction) actionSettings:(id)sender {
     SettingsViewController *controller = [[SettingsViewController alloc] initWithNibName:@"SettingsViewController" bundle:nil];
-    self.navigationItem.backBarButtonItem = [[[UIBarButtonItem alloc] initWithTitle:@"Zurück" style:UIBarButtonItemStyleBordered target:nil action:nil] autorelease];
+    self.navigationItem.backBarButtonItem = [[[UIBarButtonItem alloc] initWithTitle:@"Zurück" style:UIBarButtonItemStylePlain target:nil action:nil] autorelease];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }
@@ -1022,39 +1030,45 @@
 
 - (GoogleCalendarEvent*)eventAtIndexPath:(NSIndexPath*)indexPath {
     GoogleCalendarEvent *currentGoogleEvent = nil;
-    switch( segmentedControlMenu.selectedSegmentIndex ) {
-            
-        case 0: {
-            if( eventSectionKeysCurrent && [eventSectionKeysCurrent count] > 0 && (indexPath.section <= [eventSectionKeysCurrent count]-1) ) {
-                NSArray *itemsInSection = [eventListCurrent objectForKey:[eventSectionKeysCurrent objectAtIndex:indexPath.section]];
-                if( itemsInSection && (indexPath.row <= [itemsInSection count]-1) ) {
-                    currentGoogleEvent = [itemsInSection objectAtIndex:indexPath.row];
+    @try {
+        switch( segmentedControlMenu.selectedSegmentIndex ) {
+                
+            case 0: {
+                if( eventSectionKeysCurrent && [eventSectionKeysCurrent count] > 0 && (indexPath.section <= [eventSectionKeysCurrent count]-1) ) {
+                    NSArray *itemsInSection = [eventListCurrent objectForKey:[eventSectionKeysCurrent objectAtIndex:indexPath.section]];
+                    if( itemsInSection && (indexPath.row <= [itemsInSection count]-1) ) {
+                        currentGoogleEvent = [itemsInSection objectAtIndex:indexPath.row];
+                    }
                 }
+                break;
             }
-            break;
-        }
-            
-        case 1: {
-            
-            if( eventSectionKeysPast && [eventSectionKeysPast count] > 0 && (indexPath.section <= [eventSectionKeysPast count]-1) ) {
-                NSArray *itemsInSection = [eventListPast objectForKey:[eventSectionKeysPast objectAtIndex:indexPath.section]];
-                if( itemsInSection && [itemsInSection count] > 0 && (indexPath.row <= [itemsInSection count]-1) ) {
-                    currentGoogleEvent = [itemsInSection objectAtIndex:indexPath.row];
+                
+            case 1: {
+                
+                if( eventSectionKeysPast && [eventSectionKeysPast count] > 0 && (indexPath.section <= [eventSectionKeysPast count]-1) ) {
+                    NSArray *itemsInSection = [eventListPast objectForKey:[eventSectionKeysPast objectAtIndex:indexPath.section]];
+                    if( itemsInSection && [itemsInSection count] > 0 && (indexPath.row <= [itemsInSection count]-1) ) {
+                        currentGoogleEvent = [itemsInSection objectAtIndex:indexPath.row];
+                    }
                 }
+                break;
             }
-            break;
-        }
-            
-        case 2: {
-            if( eventsFavouritedSorted && [eventsFavouritedSorted count] > 0 && indexPath.row <= ([eventsFavouritedSorted count]-1) ) {
-                currentGoogleEvent = [eventsFavouritedSorted objectAtIndex:indexPath.row];
+                
+            case 2: {
+                if( eventsFavouritedSorted && [eventsFavouritedSorted count] > 0 && indexPath.row <= ([eventsFavouritedSorted count]-1) ) {
+                    currentGoogleEvent = [eventsFavouritedSorted objectAtIndex:indexPath.row];
+                }
+                break;
             }
-            break;
+                
+            default:
+                return nil;
+                break;
         }
-            
-        default:
-            return nil;
-            break;
+    }
+    @catch (NSException *exception) {
+        // ERROR HAPPENED
+        currentGoogleEvent = nil;
     }
     return currentGoogleEvent;
 }
@@ -1156,90 +1170,91 @@
     // CONFIGURE DISPLAY DATA
     GoogleCalendarEvent *currentGoogleEvent = [self eventAtIndexPath:indexPath];
 
-    NSDateFormatter *df = [[NSDateFormatter alloc] init];
-    NSLocale *locale = [NSLocale currentLocale];
-    [df setLocale:locale];
-    [df setDateStyle:NSDateFormatterMediumStyle];
-    df.doesRelativeDateFormatting = YES;
-    
-    NSString *startDateStr = [df stringFromDate:currentGoogleEvent.StartDate];
-    
-    BOOL isToday = [self isSameDayDate:[NSDate date] asDate:currentGoogleEvent.StartDate];
-    cell.textLabel.textColor = isToday ? kCOLOR_HACKERSPACE : [UIColor blackColor];
-    
-    
-    [df setDateFormat:@"H:mm"];
+    if( currentGoogleEvent ) {
+        NSDateFormatter *df = [[NSDateFormatter alloc] init];
+        NSLocale *locale = [NSLocale currentLocale];
+        [df setLocale:locale];
+        [df setDateStyle:NSDateFormatterMediumStyle];
+        df.doesRelativeDateFormatting = YES;
+        
+        NSString *startDateStr = [df stringFromDate:currentGoogleEvent.StartDate];
+        
+        BOOL isToday = [self isSameDayDate:[NSDate date] asDate:currentGoogleEvent.StartDate];
+        cell.textLabel.textColor = isToday ? kCOLOR_HACKERSPACE : [UIColor blackColor];
+        
+        
+        [df setDateFormat:@"H:mm"];
 
-    NSString *hoursOpen = [NSString stringWithFormat:@"%@, %@ bis %@ Uhr", startDateStr, [df stringFromDate:currentGoogleEvent.StartDate], [df stringFromDate:currentGoogleEvent.EndDate]];
-    cell.textLabel.text = [NSString stringWithFormat:@"%@", currentGoogleEvent.Title ];
-    NSString *descriptionString = hoursOpen;
-    if( currentGoogleEvent.Description ) {
-        descriptionString = [NSString stringWithFormat:@"%@\n%@", descriptionString, currentGoogleEvent.Description];
+        NSString *hoursOpen = [NSString stringWithFormat:@"%@, %@ bis %@ Uhr", startDateStr, [df stringFromDate:currentGoogleEvent.StartDate], [df stringFromDate:currentGoogleEvent.EndDate]];
+        cell.textLabel.text = [NSString stringWithFormat:@"%@", currentGoogleEvent.Title ];
+        NSString *descriptionString = hoursOpen;
+        if( currentGoogleEvent.Description ) {
+            descriptionString = [NSString stringWithFormat:@"%@\n%@", descriptionString, currentGoogleEvent.Description];
+        }
+        cell.detailTextLabel.text = descriptionString;
+        
+        
+        // NOT PERFORMING TOO WELL
+        /*
+        NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@""];
+        NSDictionary *hourAttributes = [NSDictionary dictionaryWithObject:kCOLOR_HACKERSPACE forKey:NSForegroundColorAttributeName];
+        
+        NSAttributedString *hoursString = [[NSAttributedString alloc] initWithString:hoursOpen attributes:hourAttributes];
+        [string appendAttributedString:hoursString];
+        [hoursString release];
+
+        
+        NSDictionary *descriptionAttributes = [NSDictionary dictionaryWithObject:[UIColor grayColor] forKey:NSForegroundColorAttributeName];
+        
+        NSString *descriptionText = [NSString stringWithFormat:@"%@", currentGoogleEvent.Description];
+        NSAttributedString *descriptionString = [[NSAttributedString alloc] initWithString:descriptionText attributes:descriptionAttributes];
+        [string appendAttributedString:descriptionString];
+        [descriptionString release];
+
+        cell.detailTextLabel.attributedText = string;
+         [string release];
+         */
+        
+        // STYLE ICON
+        MOOStyleTrait *grayIconTrait = [MOOStyleTrait trait];
+        
+        grayIconTrait.gradientColors = [NSArray arrayWithObjects:
+                                        [UIColor colorWithHue:0.0f saturation:0.05f brightness:0.34f alpha:1.0f],
+                                        [UIColor colorWithHue:0.0f saturation:0.05f brightness:0.57f alpha:1.0f], nil];
+        grayIconTrait.shadowColor = [UIColor colorWithWhite:0.0f alpha:1.0f];
+        grayIconTrait.shadowOffset = CGSizeMake(0.0f, -1.0f);
+        
+        grayIconTrait.innerShadowColor = [UIColor colorWithWhite:1.0f alpha:0.6f];
+        grayIconTrait.innerShadowOffset = CGSizeMake(0.0f, -1.0f);
+
+        NSString *imageName = currentGoogleEvent.isMarkedAsFavorite ? @"icon_favstar_filled.png" : @"icon_favstar_framed.png";
+        MOOMaskedIconView *calendarIconView = [MOOMaskedIconView iconWithResourceNamed:imageName];
+        calendarIconView.color = currentGoogleEvent.isMarkedAsFavorite ? kCOLOR_HACKERSPACE : [UIColor lightGrayColor];
+        //[calendarIconView mixInTrait:grayIconTrait];
+        calendarIconView.userInteractionEnabled = NO;
+
+        
+        if( isToday || segmentedControlMenu.selectedSegmentIndex == 1 || segmentedControlMenu.selectedSegmentIndex == 2 ) {
+            cell.accessoryView = nil;
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        }
+        else {
+            UIButton *button = [UIButton  buttonWithType:UIButtonTypeCustom];
+            button.frame = CGRectMake(0.0, 0.0, 40, 40);
+            button.showsTouchWhenHighlighted = YES;
+            [button addTarget:self action:@selector(actionFavoriteEvent:) forControlEvents:UIControlEventTouchUpInside];
+            [button addSubview:calendarIconView];
+            calendarIconView.center = button.center;
+            // [button setBackgroundImage:buttonImage forState:UIControlStateHighlighted];
+            // [button setBackgroundImage:buttonImage forState:UIControlStateNormal];
+            calendarIconView.tag = [indexPath section];
+            button.tag = [indexPath row];
+            cell.accessoryView = button;
+            cell.accessoryType = UITableViewCellAccessoryNone;
+        }
+        
+        [df release], df = nil;
     }
-    cell.detailTextLabel.text = descriptionString;
-    
-    
-    // NOT PERFORMING TOO WELL
-    /*
-    NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@""];
-    NSDictionary *hourAttributes = [NSDictionary dictionaryWithObject:kCOLOR_HACKERSPACE forKey:NSForegroundColorAttributeName];
-    
-    NSAttributedString *hoursString = [[NSAttributedString alloc] initWithString:hoursOpen attributes:hourAttributes];
-    [string appendAttributedString:hoursString];
-    [hoursString release];
-
-    
-    NSDictionary *descriptionAttributes = [NSDictionary dictionaryWithObject:[UIColor grayColor] forKey:NSForegroundColorAttributeName];
-    
-    NSString *descriptionText = [NSString stringWithFormat:@"%@", currentGoogleEvent.Description];
-    NSAttributedString *descriptionString = [[NSAttributedString alloc] initWithString:descriptionText attributes:descriptionAttributes];
-    [string appendAttributedString:descriptionString];
-    [descriptionString release];
-
-    cell.detailTextLabel.attributedText = string;
-     [string release];
-     */
-    
-    // STYLE ICON
-    MOOStyleTrait *grayIconTrait = [MOOStyleTrait trait];
-    
-    grayIconTrait.gradientColors = [NSArray arrayWithObjects:
-                                    [UIColor colorWithHue:0.0f saturation:0.05f brightness:0.34f alpha:1.0f],
-                                    [UIColor colorWithHue:0.0f saturation:0.05f brightness:0.57f alpha:1.0f], nil];
-    grayIconTrait.shadowColor = [UIColor colorWithWhite:0.0f alpha:1.0f];
-    grayIconTrait.shadowOffset = CGSizeMake(0.0f, -1.0f);
-    
-    grayIconTrait.innerShadowColor = [UIColor colorWithWhite:1.0f alpha:0.6f];
-    grayIconTrait.innerShadowOffset = CGSizeMake(0.0f, -1.0f);
-
-    NSString *imageName = currentGoogleEvent.isMarkedAsFavorite ? @"icon_favstar_filled.png" : @"icon_favstar_framed.png";
-    MOOMaskedIconView *calendarIconView = [MOOMaskedIconView iconWithResourceNamed:imageName];
-    calendarIconView.color = currentGoogleEvent.isMarkedAsFavorite ? kCOLOR_HACKERSPACE : [UIColor lightGrayColor];
-    //[calendarIconView mixInTrait:grayIconTrait];
-    calendarIconView.userInteractionEnabled = NO;
-    
-    
-    if( isToday || segmentedControlMenu.selectedSegmentIndex == 1 || segmentedControlMenu.selectedSegmentIndex == 2 ) {
-        cell.accessoryView = nil;
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    }
-    else {
-        UIButton *button = [UIButton  buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(0.0, 0.0, 40, 40);
-        button.showsTouchWhenHighlighted = YES;
-        [button addTarget:self action:@selector(actionFavoriteEvent:) forControlEvents:UIControlEventTouchUpInside];
-        [button addSubview:calendarIconView];
-        calendarIconView.center = button.center;
-        // [button setBackgroundImage:buttonImage forState:UIControlStateHighlighted];
-        // [button setBackgroundImage:buttonImage forState:UIControlStateNormal];
-        calendarIconView.tag = [indexPath section];
-        button.tag = [indexPath row];
-        cell.accessoryView = button;
-        cell.accessoryType = UITableViewCellAccessoryNone;
-    }
-    
-    
-    [df release], df = nil;
     return cell;
 }
 

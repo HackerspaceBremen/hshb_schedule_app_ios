@@ -137,11 +137,12 @@
     return [NSURL URLWithString:urlString];
 }
 
-- (void)loadEventsWithPageToken:(NSString *)pageToken
-{
+- (void)loadEventsWithPageToken:(NSString *)pageToken {
+    if( DEBUG ) NSLog( @"LOADING GOOGLE CALENDAR EVENTS..." );
     NSURL *url = [self urlWithPageToken:pageToken];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:30.0];
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [request setHTTPMethod:@"GET"];
 
     NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:NO];
     [connection setDelegateQueue:[NSOperationQueue currentQueue]];
@@ -154,8 +155,8 @@
     [connection start];
 }
 
-- (void)handleResponseData:(NSData *)data
-{
+- (void)handleResponseData:(NSData *)data {
+    if( DEBUG ) NSLog( @"HANDLING GOOGLE CALENDAR EVENTS..." );
     NSError *error;
     NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
 

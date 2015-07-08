@@ -20,6 +20,8 @@
 @synthesize msgLabel;
 @synthesize infoLabel;
 @synthesize isEditingTextView;
+@synthesize spaceMessages;
+@synthesize spaceMessageControl;
 
 - (void) dealloc {
     self.uidTextField = nil;
@@ -30,6 +32,8 @@
     self.pwdLabel = nil;
     self.msgLabel = nil;
     self.infoLabel = nil;
+    self.spaceMessages = nil;
+    self.spaceMessageControl = nil;
     [super dealloc];
 }
 
@@ -55,10 +59,38 @@
     if( [[UIDevice currentDevice] isOS_7] ) {
         self.extendedLayoutIncludesOpaqueBars = NO;
         self.edgesForExtendedLayout = UIRectEdgeNone;
-    }   
+    }
+    // LOAD MESSAGES
+    self.spaceMessages = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+    if( !spaceMessages ) {
+        self.spaceMessages = [NSMutableDictionary dictionary];
+        for( int i = 0; i < 4; i++ ) {
+            NSString *messageKey = [NSString stringWithFormat:@"message_%i", (int)i];
+            [spaceMessages setObject:kTEXTVIEW_PLACEHOLDER forKey:messageKey];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    // LOAD ACTIVE INDEX
+    NSUInteger activeMessageIndex = 0;
+    if( [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE] ) {
+        activeMessageIndex = [[NSUserDefaults standardUserDefaults] integerForKey:kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE];
+        [spaceMessageControl setSelectedSegmentIndex:activeMessageIndex];
+    }
+    else {
+        [[NSUserDefaults standardUserDefaults] setInteger:activeMessageIndex forKey:kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    
     NSString *buildVersionString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleShortVersionString"];
     NSString *buildNumberString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleVersion"];
-    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen v%@ / %@\n2014 by appdoctors.de, Helge Städtler", buildVersionString, buildNumberString];
+    NSDate *today = [NSDate date];
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSUInteger units = (NSCalendarUnitYear );
+    NSDateComponents *components = [calendar components:units fromDate:today];
+    NSUInteger yearFrom = 2013;
+    NSUInteger yearTo = components.year;
+    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen\nv%@ / %@, %lu-%lu by trailblazr", buildVersionString, buildNumberString, (unsigned long)yearFrom, (unsigned long)yearTo];
 
     if( [[UIDevice currentDevice] isOS_7] ) {
         self.view.backgroundColor = kCOLOR_HACKERSPACE;
@@ -103,6 +135,16 @@
 
 #pragma mark - user actions -
 
+- (IBAction) actionChangeActiveMessage:(UISegmentedControl*)control {
+    NSUInteger activeMessageIndex = control.selectedSegmentIndex;
+    [[NSUserDefaults standardUserDefaults] setInteger:activeMessageIndex forKey:kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE];
+    NSString *messageKey = [NSString stringWithFormat:@"message_%lu", (unsigned long)activeMessageIndex];
+    msgTextView.text = [spaceMessages objectForKey:messageKey];
+    [self textViewDidChange:msgTextView];
+    [[NSUserDefaults standardUserDefaults] setObject:msgTextView.text forKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
 - (IBAction) actionValidateLogin:(id)sender {
     [uidTextField resignFirstResponder];
     [pwdTextField resignFirstResponder];
@@ -133,12 +175,19 @@
     [[NSUserDefaults standardUserDefaults] setObject:uidTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
     [[NSUserDefaults standardUserDefaults] setObject:pwdTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     [[NSUserDefaults standardUserDefaults] setObject:msgTextView.text forKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
+
+    // UPDATE STORED MESSAGES
+    NSString *messageKey = [NSString stringWithFormat:@"message_%li", (long)spaceMessageControl.selectedSegmentIndex];
+    [spaceMessages setObject:msgTextView.text forKey:messageKey];
+    [[NSUserDefaults standardUserDefaults] setObject:spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 #pragma mark - UITextView delegate -
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    /*
     if ( [text isEqualToString:@"\n"] ) {
         [textView resignFirstResponder];
         [self saveAllValues];
@@ -147,6 +196,8 @@
     else {
         return YES;
     }
+     */
+    return YES;
 }
 
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
@@ -200,6 +251,7 @@
 }
 
 - (void) textFieldDidEndEditing:(UITextField *)textField {
+    [msgTextView resignFirstResponder];
     [self saveAllValues];
 }
 
