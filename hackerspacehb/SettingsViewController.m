@@ -61,8 +61,8 @@
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
     // LOAD MESSAGES
-    self.spaceMessages = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGES];
-    if( !spaceMessages ) {
+    NSDictionary *storedMessages = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+    if( !storedMessages ) {
         self.spaceMessages = [NSMutableDictionary dictionary];
         for( int i = 0; i < 4; i++ ) {
             NSString *messageKey = [NSString stringWithFormat:@"message_%i", (int)i];
@@ -70,6 +70,9 @@
         }
         [[NSUserDefaults standardUserDefaults] setObject:spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
         [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    else {
+        self.spaceMessages = [NSMutableDictionary dictionaryWithDictionary:storedMessages];
     }
     // LOAD ACTIVE INDEX
     NSUInteger activeMessageIndex = 0;
@@ -173,16 +176,18 @@
 #pragma mark - UITextFieldDelegate
 
 - (void) saveAllValues {
-    [[NSUserDefaults standardUserDefaults] setObject:uidTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
-    [[NSUserDefaults standardUserDefaults] setObject:pwdTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
-    [[NSUserDefaults standardUserDefaults] setObject:msgTextView.text forKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
-
-    // UPDATE STORED MESSAGES
-    NSString *messageKey = [NSString stringWithFormat:@"message_%li", (long)spaceMessageControl.selectedSegmentIndex];
-    [spaceMessages setObject:msgTextView.text forKey:messageKey];
-    [[NSUserDefaults standardUserDefaults] setObject:spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
-
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    @synchronized( [NSUserDefaults standardUserDefaults] ) {
+        [[NSUserDefaults standardUserDefaults] setObject:uidTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+        [[NSUserDefaults standardUserDefaults] setObject:pwdTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+        [[NSUserDefaults standardUserDefaults] setObject:msgTextView.text forKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
+        // UPDATE STORED MESSAGES
+        NSString *messageKey = [NSString stringWithFormat:@"message_%li", (long)spaceMessageControl.selectedSegmentIndex];
+        if( msgTextView.text && [msgTextView.text length] > 0 ) {
+            [self.spaceMessages setObject:msgTextView.text forKey:messageKey];
+            [[NSUserDefaults standardUserDefaults] setObject:self.spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+        }
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
 }
 
 #pragma mark - UITextView delegate -
