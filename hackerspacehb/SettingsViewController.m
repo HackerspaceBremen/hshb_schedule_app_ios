@@ -90,7 +90,7 @@
     NSDateComponents *components = [calendar components:units fromDate:today];
     NSUInteger yearFrom = 2013;
     NSUInteger yearTo = components.year;
-    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen\nv%@ / %@, %lu-%lu by trailblazr", buildVersionString, buildNumberString, (unsigned long)yearFrom, (unsigned long)yearTo];
+    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen\nv%@ / build %@, %lu-%lu by trailblazr", buildVersionString, buildNumberString, (unsigned long)yearFrom, (unsigned long)yearTo];
 
     if( [[UIDevice currentDevice] isOS_7] ) {
         self.view.backgroundColor = kCOLOR_HACKERSPACE;
@@ -107,12 +107,13 @@
     uidTextField.text = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
     pwdTextField.text = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     msgTextView.text = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
+    if( !msgTextView.text || [msgTextView.text length] == 0 ) {
+        msgTextView.text = kTEXTVIEW_PLACEHOLDER;
+    }
+    [self textViewDidChange:msgTextView];
     msgTextView.layer.cornerRadius = 4;
     msgTextView.layer.borderColor = [[UIColor lightGrayColor] colorWithAlphaComponent:0.2].CGColor;
     msgTextView.layer.borderWidth = 0.5f;
-    if( [msgTextView.text isEqualToString:kTEXTVIEW_PLACEHOLDER] ) {
-        msgTextView.textColor = kTEXTVIEW_FEEDBACK_COLOR_PLACE;
-    }
     
     msgTextView.editable = YES;
     

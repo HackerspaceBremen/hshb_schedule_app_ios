@@ -159,7 +159,7 @@
     BOOL shouldNotifyAboutTimeChange = NO;
     if( dateAppWentToBackground ) {
         NSDate *dateNow = [NSDate date];
-        NSUInteger units = (NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit );
+        NSUInteger units = (NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay );
         NSCalendar *calendar = [NSCalendar currentCalendar];
         NSDateComponents *componentsNow = [calendar components:units fromDate:dateNow];
         NSInteger yearNow = componentsNow.year;
