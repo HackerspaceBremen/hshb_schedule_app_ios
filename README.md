@@ -30,6 +30,8 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Versionen
 
+* Version 2.0 (??.11.2016)
+* Version 1.5 (16.7.2015)
 * Version 1.4 (17.1.2015)
 * Version 1.3 (25.6.2014)
 * Version 1.2 (23.1.2014)
