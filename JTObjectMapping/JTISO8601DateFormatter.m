@@ -20,7 +20,7 @@ unichar ISO8601DefaultTimeSeparatorCharacter = DEFAULT_TIME_SEPARATOR;
 #define ISO_TIME_WITH_TIMEZONE_FORMAT  ISO_TIME_FORMAT @"Z"
 //printf formats.
 #define ISO_TIMEZONE_UTC_FORMAT @"Z"
-#define ISO_TIMEZONE_OFFSET_FORMAT @"%+02d%02d"
+#define ISO_TIMEZONE_OFFSET_FORMAT @"%+02ld%02ld"
 
 @interface JTISO8601DateFormatter(UnparsingPrivate)
 
@@ -116,14 +116,14 @@ static BOOL is_leap_year(unsigned year);
 	return [self dateComponentsFromString:string timeZone:outTimeZone range:NULL];
 }
 - (NSDateComponents *) dateComponentsFromString:(NSString *)string timeZone:(out NSTimeZone **)outTimeZone range:(out NSRange *)outRange {
-	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian] autorelease];
 	calendar.firstWeekday = 2; //Monday
 	NSDate *now = [NSDate date];
 
 	NSDateComponents *components = [[[NSDateComponents alloc] init] autorelease];
-	NSDateComponents *nowComponents = [calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:now];
+	NSDateComponents *nowComponents = [calendar components:(NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay) fromDate:now];
 
-	unsigned
+	NSUInteger
 		//Date
 		year,
 		month_or_week,
@@ -162,7 +162,7 @@ static BOOL is_leap_year(unsigned year);
 	} else {
 		//Skip leading whitespace.
 		unsigned i = 0U;
-		for(unsigned len = strlen((const char *)ch); i < len; ++i) {
+		for(unsigned len = (unsigned) strlen((const char *)ch); i < len; ++i) {
 			if (!isspace(ch[i]))
 				break;
 		}
@@ -264,7 +264,7 @@ static BOOL is_leap_year(unsigned year);
 									case 3: //DDD
 										day = segment % 1000U;
 										dateSpecification = dateOnly;
-										if (strict && (day > (365U + is_leap_year(year))))
+										if (strict && (day > (365U + is_leap_year((unsigned)year))))
 											isValidDate = NO;
 										break;
 
@@ -388,8 +388,8 @@ static BOOL is_leap_year(unsigned year);
 
 						case 1:; //-YY; -YY-MM (implicit century)
 							NSLog(@"(%@) found %u digits and one hyphen, so this is either -YY or -YY-MM; segment (year) is %u", string, num_digits, segment);
-							unsigned current_year = nowComponents.year;
-							unsigned century = (current_year % 100U);
+							NSUInteger current_year = nowComponents.year;
+							NSUInteger century = (current_year % 100U);
 							year = segment + (current_year - century);
 							if (num_digits == 1U) //implied decade
 								year += century - (current_year % 10U);
@@ -397,7 +397,7 @@ static BOOL is_leap_year(unsigned year);
 							if (*ch == '-') {
 								++ch;
 								month_or_week = read_segment_2digits(ch, &ch);
-								NSLog(@"(%@) month is %u", string, month_or_week);
+								NSLog(@"(%@) month is %lu", string, (unsigned long)month_or_week);
 							}
 
 							day = 1U;
@@ -430,7 +430,7 @@ static BOOL is_leap_year(unsigned year);
 						day = segment % 1000U;
 						year = segment / 1000U;
 						dateSpecification = dateOnly;
-						if (strict && (day > (365U + is_leap_year(year))))
+						if (strict && (day > (365U + is_leap_year((unsigned)year))))
 							isValidDate = NO;
 					}
 					break;
@@ -443,7 +443,7 @@ static BOOL is_leap_year(unsigned year);
 						day = segment;
 						year = nowComponents.year;
 						dateSpecification = dateOnly;
-						if (strict && (day > (365U + is_leap_year(year))))
+						if (strict && (day > (365U + is_leap_year((unsigned)year))))
 							isValidDate = NO;
 					}
 					break;
@@ -536,7 +536,7 @@ static BOOL is_leap_year(unsigned year);
 				case week:;
 					//Adapted from <http://personal.ecu.edu/mccartyr/ISOwdALG.txt>.
 					//This works by converting the week date into an ordinal date, then letting the next case handle it.
-					unsigned prevYear = year - 1U;
+					unsigned prevYear = (unsigned)year - 1U;
 					unsigned YY = prevYear % 100U;
 					unsigned C = prevYear - YY;
 					unsigned G = YY + YY / 4U;
@@ -573,7 +573,7 @@ static BOOL is_leap_year(unsigned year);
 	return [self dateFromString:string timeZone:outTimeZone range:NULL];
 }
 - (NSDate *) dateFromString:(NSString *)string timeZone:(out NSTimeZone **)outTimeZone range:(out NSRange *)outRange {
-	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian] autorelease];
 	calendar.firstWeekday = 2; //Monday
 
 	NSTimeZone *timeZone = nil;
@@ -625,7 +625,7 @@ static BOOL is_leap_year(unsigned year);
 		case ISO8601DateFormatOrdinal:
 			return [self stringFromDate:date formatString:ISO_ORDINAL_DATE_FORMAT timeZone:timeZone];
 		default:
-			[NSException raise:NSInternalInconsistencyException format:@"self.format was %d, not calendar (%d), week (%d), or ordinal (%d)", self.format, ISO8601DateFormatCalendar, ISO8601DateFormatWeek, ISO8601DateFormatOrdinal];
+			[NSException raise:NSInternalInconsistencyException format:@"self.format was %lu, not calendar (%d), week (%d), or ordinal (%d)", (unsigned long)self.format, ISO8601DateFormatCalendar, ISO8601DateFormatWeek, ISO8601DateFormatOrdinal];
 			return nil;
 	}
 }
@@ -634,7 +634,7 @@ static BOOL is_leap_year(unsigned year);
 	if (includeTime)
 		dateFormat = [dateFormat stringByAppendingFormat:@"'T'%@", [self replaceColonsInString:ISO_TIME_FORMAT withTimeSeparator:self.timeSeparator]];
 
-	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian] autorelease];
 	calendar.firstWeekday = 2; //Monday
 
 	NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -647,7 +647,7 @@ static BOOL is_leap_year(unsigned year);
 	[formatter release];
 
 	if (includeTime) {
-		int offset = [timeZone secondsFromGMT];
+		NSInteger offset = [timeZone secondsFromGMT];
 		offset /= 60;  //bring down to minutes
 		if (offset == 0)
 			str = [str stringByAppendingString:ISO_TIMEZONE_UTC_FORMAT];
@@ -669,15 +669,15 @@ static BOOL is_leap_year(unsigned year);
  *	http://personal.ecu.edu/mccartyr/ISOwdALG.txt
  */
 - (NSString *) weekDateStringForDate:(NSDate *)date timeZone:(NSTimeZone *)timeZone {
-	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian] autorelease];
 	calendar.timeZone = timeZone;
-	NSDateComponents *components = [calendar components:NSYearCalendarUnit | NSWeekdayCalendarUnit | NSDayCalendarUnit fromDate:date];
+	NSDateComponents *components = [calendar components:NSCalendarUnitYear | NSCalendarUnitWeekday | NSCalendarUnitDay fromDate:date];
 
 	//Determine the ordinal date.
-	NSDateComponents *startOfYearComponents = [calendar components:NSYearCalendarUnit fromDate:date];
+	NSDateComponents *startOfYearComponents = [calendar components:NSCalendarUnitYear fromDate:date];
 	startOfYearComponents.month = 1;
 	startOfYearComponents.day = 1;
-	NSDateComponents *ordinalComponents = [calendar components:NSDayCalendarUnit fromDate:[calendar dateFromComponents:startOfYearComponents] toDate:date options:0];
+	NSDateComponents *ordinalComponents = [calendar components:NSCalendarUnitDay fromDate:[calendar dateFromComponents:startOfYearComponents] toDate:date options:0];
 	ordinalComponents.day += 1;
 
 	enum {
@@ -690,21 +690,21 @@ static BOOL is_leap_year(unsigned year);
 		october, november, december
 	};
 
-	int year = components.year;
-	int week = 0;
+	NSInteger year = components.year;
+	NSInteger week = 0;
 	//The old unparser added 6 to [calendarDate dayOfWeek], which was zero-based; components.weekday is one-based, so we now add only 5.
-	int dayOfWeek = (components.weekday + 5) % 7;
-	int dayOfYear = ordinalComponents.day;
+	NSInteger dayOfWeek = (components.weekday + 5) % 7;
+	NSInteger dayOfYear = ordinalComponents.day;
 
-	int prevYear = year - 1;
+	NSInteger prevYear = year - 1;
 
-	BOOL yearIsLeapYear = is_leap_year(year);
-	BOOL prevYearIsLeapYear = is_leap_year(prevYear);
+	BOOL yearIsLeapYear = is_leap_year((unsigned int)year);
+	BOOL prevYearIsLeapYear = is_leap_year((unsigned int)prevYear);
 
 	int YY = prevYear % 100;
-	int C = prevYear - YY;
+	NSInteger C = prevYear - YY;
 	int G = YY + YY / 4;
-	int Jan1Weekday = (((((C / 100) % 4) * 5) + G) % 7);
+	NSInteger Jan1Weekday = (((((C / 100) % 4) * 5) + G) % 7);
 
 	int weekday = ((dayOfYear + Jan1Weekday) - 1) % 7;
 
@@ -717,7 +717,7 @@ static BOOL is_leap_year(unsigned year);
 			++year;
 			week = 1;
 		} else {
-			int J = dayOfYear + (sunday - weekday) + Jan1Weekday;
+			NSInteger J = dayOfYear + (sunday - weekday) + Jan1Weekday;
 			week = J / 7 - (Jan1Weekday > thursday);
 		}
 	}

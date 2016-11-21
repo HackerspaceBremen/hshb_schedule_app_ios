@@ -21,7 +21,6 @@
 @synthesize titleLabel;
 @synthesize dateTimeLabel;
 @synthesize descriptionTextView;
-@synthesize sheetPresented;
 @synthesize favoriteBannerLabel;
 @synthesize eventStore;
 
@@ -30,7 +29,6 @@
     self.dateTimeLabel = nil;
     self.titleLabel = nil;
     self.descriptionTextView = nil;
-    self.sheetPresented = nil;
     self.favoriteBannerLabel = nil;
     self.eventStore = nil;
     [super dealloc];
@@ -43,6 +41,10 @@
 }
 
 #pragma mark - view handling
+
+-(UIStatusBarStyle)preferredStatusBarStyle{
+    return UIStatusBarStyleLightContent;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -91,14 +93,15 @@
     descriptionTextView.text = [NSString stringWithString:descriptionText];
     
     // CONFIGURE TOOLBAR
-    if( NO ) {
+    BOOL useToolbar = NO;
+    if( useToolbar ) {
         UIBarButtonItem *spacerItem1 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
         UIBarButtonItem *spacerStatic1 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
         UIBarButtonItem *spacerStatic2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
         spacerStatic1.width = 20.0;
         spacerStatic2.width = 20.0;
         UIBarButtonItem *actionItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionRememberInCalendar:)] autorelease];
-        UIBarButtonItem *addToCalendarItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(actionAddToCalendar:)] autorelease];
+        UIBarButtonItem *addToCalendarItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(actionAddToCalendar)] autorelease];
             
         NSArray *toolBarItems = @[spacerStatic1,addToCalendarItem, spacerItem1, actionItem,spacerStatic2];
         [self setToolbarItems:toolBarItems animated:YES];
@@ -255,43 +258,9 @@
     [alert release];
 }
 
-#pragma mark - UIActionSheetDelegate
-
-- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    actionSheet.delegate = nil;
-    switch ( actionSheet.tag ) {
-        case kACTIONSHEET_EVENT_DETAIL_ASK_ACTION:
-            self.sheetPresented = nil;
-            if( buttonIndex == actionSheet.destructiveButtonIndex ) {
-                // EVENT LOESCHEN
-                [self actionRemoveFromCalendar];
-                return;
-            }
-            else if( buttonIndex == actionSheet.cancelButtonIndex ) {
-                // do nothing
-                return;
-            }
-            if( buttonIndex == actionSheet.firstOtherButtonIndex ) {
-                // TWITTER TEILEN
-                [self actionShareViaTwitter];
-                return;
-            }
-            else if( buttonIndex == actionSheet.firstOtherButtonIndex+1 ) {
-                // EVENT EINTRAGEN
-                [self actionAddToCalendar];
-                return;
-            }
-            break;
-            
-        default:
-            break;
-    }
-}
-
 #pragma mark - user actions
 
 - (IBAction) actionRememberInCalendar:(id)sender {
-    if( sheetPresented ) return;
     NSString *sheetTitle = @"Veranstaltung in";
     EKAuthorizationStatus calendarAccessStatus = [EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent];
     BOOL isAllowedToAccess = ( calendarAccessStatus == EKAuthorizationStatusAuthorized );
@@ -300,14 +269,49 @@
         hasEventInCalendar = [self hasEventInCalendar];
     }
     if( hasEventInCalendar ) {
-        self.sheetPresented = [[[UIActionSheet alloc] initWithTitle:sheetTitle delegate:self cancelButtonTitle:@"Abbrechen" destructiveButtonTitle:@"Kalender entfernen" otherButtonTitles:@"Twitter senden", nil] autorelease];
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:sheetTitle
+                                                                       message:nil
+                                                                preferredStyle:UIAlertControllerStyleActionSheet];
+        
+        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter senden" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            // TWITTER TEILEN
+            [self actionShareViaTwitter];
+        }];
+
+        UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Abbrechen" style:UIAlertActionStyleCancel handler:nil];
+        
+        UIAlertAction* removeAction = [UIAlertAction actionWithTitle:@"Kalender entfernen" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * action) {
+            // EVENT LOESCHEN
+            [self actionRemoveFromCalendar];
+        }];
+
+        [alert addAction:removeAction];
+        [alert addAction:twitterAction];
+        [alert addAction:cancelAction];
+        [self presentViewController:alert animated:YES completion:nil];
     }
     else {
-        self.sheetPresented = [[[UIActionSheet alloc] initWithTitle:sheetTitle delegate:self cancelButtonTitle:@"Abbrechen" destructiveButtonTitle:nil otherButtonTitles:@"Twitter senden",@"Kalender eintragen", nil] autorelease];
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:sheetTitle
+                                                                       message:nil
+                                                                preferredStyle:UIAlertControllerStyleActionSheet];
+        
+        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter senden" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            // TWITTER TEILEN
+            [self actionShareViaTwitter];
+        }];
+        
+        UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Abbrechen" style:UIAlertActionStyleCancel handler:nil];
+        
+        UIAlertAction* removeAction = [UIAlertAction actionWithTitle:@"Kalender eintragen" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * action) {
+            // EVENT EINTRAGEN
+            [self actionAddToCalendar];
+        }];
+        
+        [alert addAction:removeAction];
+        [alert addAction:twitterAction];
+        [alert addAction:cancelAction];
+        [self presentViewController:alert animated:YES completion:nil];
     }
-    sheetPresented.actionSheetStyle = UIActionSheetStyleBlackOpaque;
-    sheetPresented.tag = kACTIONSHEET_EVENT_DETAIL_ASK_ACTION;
-    [sheetPresented showFromBarButtonItem:sender animated:YES];
 }
 
 - (BOOL) hasEventInCalendar {

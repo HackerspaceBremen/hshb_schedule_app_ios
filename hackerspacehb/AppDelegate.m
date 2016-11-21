@@ -106,10 +106,6 @@
     UISwitch *proxySwitch = [UISwitch appearance];
     proxySwitch.onTintColor = kCOLOR_HACKERSPACE;
     
-    UIAlertView *proxyAlertView = [UIAlertView appearance];
-    proxyAlertView.tintColor = kCOLOR_HACKERSPACE;
-
-    
     // NSLog( @"%@", [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD] );
     
     // SETUP NETWORKING
@@ -122,11 +118,19 @@
     [self eventFavoritesRead];
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-    self.window.tintColor = [UIColor whiteColor];
+    self.window.tintColor = kCOLOR_HACKERSPACE;//[UIColor whiteColor];
 
     CalendarViewController *firstController = [[[CalendarViewController alloc] initWithNibName:@"CalendarViewController" bundle:nil] autorelease];
     self.rootNavController = [[[UINavigationController alloc] initWithRootViewController:firstController] autorelease];
     self.window.rootViewController = self.rootNavController;
+
+    UIImage *indicatorImage = [UIImage imageNamed:@"icon_back_elegant"];
+    indicatorImage = [indicatorImage imageWithAlignmentRectInsets:UIEdgeInsetsMake(4.0f, 0, 4.0f, 0)];
+    indicatorImage = [indicatorImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    self.rootNavController.navigationBar.backIndicatorImage = indicatorImage;
+    self.rootNavController.navigationBar.backIndicatorTransitionMaskImage = indicatorImage;
+
+    
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
     [self.window makeKeyAndVisible];
     return YES;

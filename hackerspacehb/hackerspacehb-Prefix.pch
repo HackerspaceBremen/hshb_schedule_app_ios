@@ -32,6 +32,8 @@
 #define DEBUG DEBUG_MASTER
 #endif
 
+#define DEBUG_COLORIZE_FRAMES               0
+
 // MATH STUFF
 #define radians(degrees) degrees * M_PI / 180
 

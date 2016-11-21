@@ -22,7 +22,7 @@ typedef enum {
     CalendarTimeIntervalFavorites = 2,
 } CalendarTimeInterval;
 
-@interface CalendarViewController : UITableViewController<UIActionSheetDelegate,UIAlertViewDelegate,MMPopLabelDelegate> {
+@interface CalendarViewController : UITableViewController<CAAnimationDelegate,MMPopLabelDelegate> {
     
     NSInteger selectedRow;
     NSMutableArray *eventsInCalender;
@@ -79,7 +79,6 @@ typedef enum {
 
 - (IBAction) actionRefreshCalendarManually:(id)sender;
 
-- (void) refreshCalendarDataFromUrl:(NSString*)urlString;
 - (void) addEventToCalendarAtSelectedRow:(NSInteger)rowIndex;
 
 @end

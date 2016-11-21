@@ -1,13 +1,40 @@
+//
+//  UIDevice+Smokebox.h
+//  Smokebox
+//
+//  Created by Helge Staedtler on 19.09.11.
+//  Copyright (c) 2011 Digineo GmbH. All rights reserved.
+//
+
 #import <Foundation/Foundation.h>
+
+typedef enum { // SCREEN DIMENSIONS IN INCHES
+    UIDeviceTypeUnknown,
+    UIDeviceType35, // (iPhone 3,4)
+    UIDeviceType40, // (iPhone 5)
+    UIDeviceType47, // (iPhone 6)
+    UIDeviceType55, // (iPhone 6plus)
+    UIDeviceType79, // (all Mini iPads)
+    UIDeviceType97, // (all normal & Air iPads)
+    UIDeviceType129, // (iPad Pro)
+    UIDeviceTypeTV, // (Apple TV)
+    UIDeviceTypeTV4K, // (Apple TV 4K)
+} UIDeviceType;
 
 @interface UIDevice (Smokebox)
 
-+ (CGFloat) systemVersion;
++ (NSInteger) systemVersion;
 + (BOOL) isFon;
 + (BOOL) isFon5;
++ (BOOL) isFon6;
++ (BOOL) isFon6plus;
 + (BOOL) isPad;
++ (BOOL) isPadPro;
 + (BOOL) isPod;
++ (BOOL) isTV;
 + (BOOL) isRetina;
++ (UIDeviceType) deviceType;
++ (NSString*) deviceTypeString;
 
 - (NSString*) platform;
 - (NSString*) platformString;
@@ -16,6 +43,7 @@
 - (BOOL) isPod;
 - (BOOL) isFon;
 - (BOOL) isRetina;
+- (BOOL) isTV;
 - (BOOL) isDeviceGeneration4;
 - (BOOL) isDeviceGeneration5;
 - (BOOL) isVersionEqualOrGreaterThanOS:(NSInteger)majorVersion;
@@ -26,7 +54,9 @@
 - (BOOL) isOS_5;
 - (BOOL) isOS_6;
 - (BOOL) isOS_7;
-- (BOOL) isDevice4Inches;
+- (BOOL) isOS_8;
+- (BOOL) isOS_9;
+- (BOOL) isOS_10;
 - (BOOL) isFon5;
 
 @end

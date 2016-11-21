@@ -24,7 +24,7 @@ typedef enum {
     EventKitAlertEventNotFound,
 } EventKitAlert;
 
-@interface EventDetailViewController : UIViewController<UIActionSheetDelegate,MFMailComposeViewControllerDelegate,AMSmoothAlertViewDelegate> {
+@interface EventDetailViewController : UIViewController<MFMailComposeViewControllerDelegate,AMSmoothAlertViewDelegate> {
     
     IBOutlet UILabel *titleLabel;
     IBOutlet UILabel *dateTimeLabel;
@@ -32,7 +32,6 @@ typedef enum {
     IBOutlet UITextView *descriptionTextView;
     
     GoogleCalendarEvent *eventToDisplay;
-    UIActionSheet *sheetPresented;
     EKEventStore *eventStore;
 }
 
@@ -41,7 +40,6 @@ typedef enum {
 @property( nonatomic, retain ) UILabel *dateTimeLabel;
 @property( nonatomic, retain ) UILabel *favoriteBannerLabel;
 @property( nonatomic, retain ) UITextView *descriptionTextView;
-@property( nonatomic, retain ) UIActionSheet *sheetPresented;
 @property( nonatomic, retain ) EKEventStore *eventStore;
 
 @end

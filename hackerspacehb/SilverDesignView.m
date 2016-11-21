@@ -131,9 +131,9 @@
     UIColor *uicolor2 = colorBottom;
 
     const CGFloat* componentsColor1 = CGColorGetComponents( uicolor1.CGColor );
-    int numOfColors1 = CGColorGetNumberOfComponents( uicolor1.CGColor );
+    int numOfColors1 = (int)CGColorGetNumberOfComponents( uicolor1.CGColor );
 	const CGFloat* componentsColor2 = CGColorGetComponents( uicolor2.CGColor );
-    int numOfColors2 = CGColorGetNumberOfComponents( uicolor2.CGColor );
+    int numOfColors2 = (int)CGColorGetNumberOfComponents( uicolor2.CGColor );
     
     // FIX BUG ON <IOS4
     CGColorRef color1,color2;

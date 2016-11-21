@@ -46,12 +46,15 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
     }
     return self;
 }
 
 #pragma mark - view handling
+
+-(UIStatusBarStyle)preferredStatusBarStyle{
+    return UIStatusBarStyleLightContent;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -60,6 +63,8 @@
         self.extendedLayoutIncludesOpaqueBars = NO;
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
+    self.spaceMessageControl.tintColor = [UIColor whiteColor];
+
     // LOAD MESSAGES
     NSDictionary *storedMessages = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGES];
     if( !storedMessages ) {

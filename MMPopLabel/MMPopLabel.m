@@ -110,8 +110,8 @@ typedef enum : NSUInteger {
     self.label.font = _labelFont;
 
     /* resize label and view */
-    CGFloat maxWidth = [UIScreen mainScreen].applicationFrame.size.width * 0.80f;
-    CGFloat maxHeight = [UIScreen mainScreen].applicationFrame.size.height * 0.80f;
+    CGFloat maxWidth = [UIScreen mainScreen].bounds.size.width * 0.80f;
+    CGFloat maxHeight = [UIScreen mainScreen].bounds.size.height * 0.80f;
 
     NSAttributedString *attributedText = [[NSAttributedString alloc] initWithString:self.label.text
                                                                          attributes:@{NSFontAttributeName:_labelFont}];
@@ -186,18 +186,18 @@ typedef enum : NSUInteger {
 
     CGPoint position = CGPointMake(view.center.x, view.center.y + view.frame.size.height / 2 + kMMPopLabelViewPadding);
     self.center = position;
-    if (position.x + (self.frame.size.width / 2) > [UIScreen mainScreen].applicationFrame.size.width) {
-        CGFloat diff = (self.frame.size.width + self.frame.origin.x - [UIScreen mainScreen].applicationFrame.size.width) + kMMPopLabelSidePadding;
+    if (position.x + (self.frame.size.width / 2) > [UIScreen mainScreen].bounds.size.width) {
+        CGFloat diff = (self.frame.size.width + self.frame.origin.x - [UIScreen mainScreen].bounds.size.width) + kMMPopLabelSidePadding;
         position = CGPointMake(view.center.x - diff, position.y);
     } else if (self.frame.origin.x < 0) {
         CGFloat diff = - self.frame.origin.x + kMMPopLabelSidePadding;
         position = CGPointMake(view.center.x + diff, view.center.y + view.frame.size.height / 2);
     }
     
-    if (self.frame.origin.y + self.frame.size.height > [UIScreen mainScreen].applicationFrame.size.height) {
+    if (self.frame.origin.y + self.frame.size.height > [UIScreen mainScreen].bounds.size.height) {
         _arrowType = MMPopLabelBottomArrow;
         position = CGPointMake(position.x,
-                               [UIScreen mainScreen].applicationFrame.size.height - (self.frame.size.height + view.frame.size.height + kMMPopLabelViewPadding));
+                               [UIScreen mainScreen].bounds.size.height - (self.frame.size.height + view.frame.size.height + kMMPopLabelViewPadding));
     }
 
     CGPoint centerPoint = CGPointMake(position.x, position.y + self.frame.size.height / 2);

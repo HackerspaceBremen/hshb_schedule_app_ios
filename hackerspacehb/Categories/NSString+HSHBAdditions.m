@@ -8,8 +8,7 @@
 
 @implementation NSString (HSHBAdditions)
 
-- (instancetype)hshb_urlEncodedWithEncoding:(NSStringEncoding)encoding
-{
+- (instancetype)hshb_urlEncodedWithEncoding:(NSStringEncoding)encoding {    
     NSString *encodedString = (NSString *) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)self, NULL, (CFStringRef)@";/?:@&=$+{}<>,", CFStringConvertNSStringEncodingToEncoding(encoding));
     
     return [encodedString autorelease];

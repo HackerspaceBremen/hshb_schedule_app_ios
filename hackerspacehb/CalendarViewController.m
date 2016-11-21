@@ -108,7 +108,7 @@
 }
 
 - (BOOL) isSameDayDate:(NSDate*)date1 asDate:(NSDate*)date2 {
-    NSUInteger units = (NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit );
+    NSUInteger units = (NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay );
     NSCalendar *calendar = [NSCalendar currentCalendar];
     
     NSDateComponents *componentsDate1 = [calendar components:units fromDate:date1];
@@ -140,13 +140,12 @@
     self.isRefreshingCalendarData = NO;
     [self.tableView reloadData];
     if( !isDisplaysNoNetworkAlert ) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Netzverbindung" message:@"Derzeit ist keine Netzverbindung möglich. Bitte prüfe ob eine Internetverbindung besteht und probiere es nocheinmal." delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
-        alert.tag = kALERT_TAG_NO_NETWORK;
         self.isDisplaysNoNetworkAlert = YES;
         [self.refreshControl endRefreshing];
-        [alert show];
-        [alert release];
-    }    
+        [self alertWithTitle:@"Netzverbindung" message:@"Derzeit ist keine Netzverbindung möglich. Bitte prüfe ob eine Internetverbindung besteht und probiere es nocheinmal." callback:^{
+            self.isDisplaysNoNetworkAlert = NO;
+        }];
+    }
 }
 
 - (void)refreshCalendFromInternet {
@@ -262,46 +261,13 @@
 
 - (void) addSettingsButton {
     // ADD SETTINGS BUTTON
-    if( [[UIDevice currentDevice] isOS_7] ) {
-        
-        NSString *imageName = @"icon_wheel_black.png";
-        MOOMaskedIconView *settingsImageView = [MOOMaskedIconView iconWithResourceNamed:imageName];
-        settingsImageView.color = kCOLOR_HACKERSPACE_WHITE;
-        settingsImageView.userInteractionEnabled = NO;
-        
-        UIButton *settingsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        settingsButton.frame = CGRectMake(0.0, 0.0, settingsImageView.bounds.size.width+10.0, settingsImageView.bounds.size.height);
-        [settingsButton addSubview:settingsImageView];
-        settingsImageView.center = settingsButton.center;
-        settingsButton.showsTouchWhenHighlighted = YES;
-        [settingsButton addTarget:self action:@selector(actionSettings:) forControlEvents:UIControlEventTouchUpInside];
-        UIBarButtonItem *settingsItem = [[[UIBarButtonItem alloc] initWithCustomView:settingsButton] autorelease];
+        UIBarButtonItem *settingsItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"icon_wheel.png"] style:UIBarButtonItemStylePlain target:self action:@selector(actionSettings:)];
+        settingsItem.tintColor = kCOLOR_HACKERSPACE_WHITE;
         [self.navigationItem setRightBarButtonItem:settingsItem animated:NO];
-
-        imageName = @"icon_browser.png";
-        MOOMaskedIconView *browserImageView = [MOOMaskedIconView iconWithResourceNamed:imageName];
-        browserImageView.color = kCOLOR_HACKERSPACE_WHITE;
-        browserImageView.userInteractionEnabled = NO;
         
-        UIButton *browserButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        browserButton.frame = CGRectMake(0.0, 0.0, browserImageView.bounds.size.width+10.0, browserImageView.bounds.size.height);
-        [browserButton addSubview:browserImageView];
-        browserImageView.center = browserButton.center;
-        browserButton.showsTouchWhenHighlighted = YES;
-        [browserButton addTarget:self action:@selector(actionDisplayHomepage:) forControlEvents:UIControlEventTouchUpInside];
-        UIBarButtonItem *browserItem = [[[UIBarButtonItem alloc] initWithCustomView:browserButton] autorelease];
+        UIBarButtonItem *browserItem = [[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"icon_browser.png"] style:UIBarButtonItemStylePlain target:self action:@selector(actionDisplayHomepage:)] autorelease];
+        browserItem.tintColor = kCOLOR_HACKERSPACE_WHITE;
         [self.navigationItem setLeftBarButtonItem:browserItem animated:NO];
-}
-    else {
-        UIButton *settingsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        UIImage *settingsButtonImage = [UIImage imageNamed:@"icon_wheel.png"];
-        settingsButton.frame = CGRectMake(0.0, 0.0, settingsButtonImage.size.width+20.0, settingsButtonImage.size.height);
-        [settingsButton setImage:settingsButtonImage forState:UIControlStateNormal];
-        settingsButton.showsTouchWhenHighlighted = YES;
-        [settingsButton addTarget:self action:@selector(actionSettings:) forControlEvents:UIControlEventTouchUpInside];
-        UIBarButtonItem *settingsItem = [[[UIBarButtonItem alloc] initWithCustomView:settingsButton] autorelease];
-        [self.navigationItem setRightBarButtonItem:settingsItem animated:NO];
-    }
 }
 
 - (void) refreshCalendarData {
@@ -312,7 +278,7 @@
     if( lastModified ) {
         CGFloat ageOfDataInSeconds = MAXFLOAT;
         if( lastModified ) {
-            ageOfDataInSeconds = fabsf( [lastModified timeIntervalSinceNow] );
+            ageOfDataInSeconds = fabs( [lastModified timeIntervalSinceNow] );
         }
         CGFloat maximumAgeInSeconds = 60.0 * 60.0 * 15.0;
         if( ageOfDataInSeconds > maximumAgeInSeconds ) {
@@ -485,11 +451,10 @@
         else {
             if( DEBUG ) NSLog( @"WE HAVE NO STATUS. BUT AN ERROR:\n\n%@\n\n", error );
             if( !isDisplaysNoStatusNoNetworkAlert ) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Hinweis" message:@"Es konnte nicht ermittelt werden, ob der Hackerspace gerade geöffnet oder geschlossen ist.\n\nUnter Umständen ist die Netzverbindung gestört, oder der Statusserver nicht erreichbar.\n\nProbiere es später noch einmal!" delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
-                alert.tag = kALERT_TAG_NO_STATUS_NO_NETWORK;
                 self.isDisplaysNoStatusNoNetworkAlert = YES;
-                [alert show];
-                [alert release];
+                [self alertWithTitle:@"Hinweis" message:@"Es konnte nicht ermittelt werden, ob der Hackerspace gerade geöffnet oder geschlossen ist.\n\nUnter Umständen ist die Netzverbindung gestört, oder der Statusserver nicht erreichbar.\n\nProbiere es später noch einmal!" callback:^{
+                    self.isDisplaysNoStatusNoNetworkAlert = NO;
+                }];
             }
         }
     }];
@@ -497,11 +462,14 @@
 
 #pragma mark - view handling
 
-/*
--(UIStatusBarStyle)preferredStatusBarStyle{
+
+- (BOOL) prefersStatusBarHidden {
+    return NO;
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle{
     return UIStatusBarStyleLightContent;
 }
- */
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -648,6 +616,30 @@
     labelNoFavorites.alpha = 0.0;
 }
 
+- (void) saveStatusMessage:(NSString*)oldStatusMessage {
+    NSDictionary *storedMessages = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+    NSMutableDictionary *spaceMessages = nil;
+    if( !storedMessages ) {
+        spaceMessages = [NSMutableDictionary dictionary];
+        for( int i = 0; i < 4; i++ ) {
+            NSString *messageKey = [NSString stringWithFormat:@"message_%i", (int)i];
+            [spaceMessages setObject:kTEXTVIEW_PLACEHOLDER forKey:messageKey];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    else {
+        spaceMessages = [NSMutableDictionary dictionaryWithDictionary:storedMessages];
+    }
+    NSUInteger lastmessageSlotIndex = 3; // SAVE TO LAST SLOT
+    NSString *messageKey = [NSString stringWithFormat:@"message_%li", (long)lastmessageSlotIndex];
+    if( oldStatusMessage && [oldStatusMessage length] > 0 ) {
+        [spaceMessages setObject:oldStatusMessage forKey:messageKey];
+        [[NSUserDefaults standardUserDefaults] setObject:spaceMessages forKey:kUSER_DEFAULTS_SPACE_MESSAGES];
+    }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
 #pragma mark - user actions
 
 - (IBAction) actionEditFavorites:(id)sender {
@@ -708,7 +700,6 @@
         stateString = [NSString stringWithFormat:@"%@ seit %@ (Ortszeit)", stateString, niceFormattedDate];
     }
     
-    UIAlertView *alert = nil;
     NSString *messageString = nil;
     NSString *spaceStateReason = nil;
     if( hackerspaceBremenStatus.spaceStatusMessage && [hackerspaceBremenStatus.spaceStatusMessage length] > 0 ) {
@@ -730,6 +721,8 @@
             [contactString appendFormat:@", %@", hackerspaceBremenStatus.spaceContact.twitter];
         }
     }
+    UIAlertAction* statusAction = nil;
+
     if( canManageSpace ) {
         NSString *openMessage = nil;
         openMessage = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
@@ -739,15 +732,95 @@
         NSString *spaceMessage = [hackerspaceBremenStatus.spaceIsOpen boolValue] ? [NSString stringWithFormat:@"."] : [NSString stringWithFormat:@" mit folgender Nachricht:\n\n%@", openMessage];
         
         messageString = [NSString stringWithFormat:@"Der %@, %@ ist %@.%@%@\n\nDu bist Keykeeper und möchtest den Space %@, dann tippe auf '%@'%@", hackerspaceBremenStatus.spaceName, hackerspaceBremenStatus.spaceAddress, stateString, spaceStateReason, contactString,actionString,doorActionString, spaceMessage];
-        alert = [[UIAlertView alloc] initWithTitle:@"Information" message:messageString delegate:self cancelButtonTitle:doorActionString otherButtonTitles:@"OK", nil];
+
+        statusAction = [UIAlertAction actionWithTitle:doorActionString style:UIAlertActionStyleDestructive
+                                                              handler:^(UIAlertAction * action) {
+                                                                  // CHANGE SPACE STATUS
+                                                                  if( [hackerspaceBremenStatus.spaceIsOpen boolValue] ) {
+                                                                      if( DEBUG ) NSLog( @"TRYING TO CLOSE SPACE..." );
+                                                                      
+                                                                      // SAVE OLD STATUS TO TEXT 4
+                                                                      [self saveStatusMessage:hackerspaceBremenStatus.spaceStatusMessage];
+                                                                      
+                                                                      [self apiCloseSpaceWithBlock:^(HSBStatus *status, NSError *error) {
+                                                                          if( error ) {
+                                                                              NSError *jsonParsingError = nil;
+                                                                              NSData *jsonAsData = [[error localizedRecoverySuggestion] dataUsingEncoding:NSUTF8StringEncoding];
+                                                                              id jsonError = [NSJSONSerialization JSONObjectWithData:jsonAsData options:NSJSONReadingAllowFragments error:&jsonParsingError];
+                                                                              HSBError *fetchedError= [[HSBError class] objectFromJSONObject:jsonError mapping:[[HSBError class] objectMapping]];
+                                                                              
+                                                                              dispatch_async(dispatch_get_main_queue(), ^{
+                                                                                  NSString *message = [NSString stringWithFormat:@"Fehler: %li - %@",(long)[fetchedError.errorCode integerValue], fetchedError.errorMessage];
+                                                                                  
+                                                                                  AMSmoothAlertView *alert = nil;
+                                                                                  alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Problem" andText:message andCancelButton:NO forAlertType:AlertFailure];
+                                                                                  alert.delegate = nil;
+                                                                                  [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
+                                                                                  [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
+                                                                                  alert.cornerRadius = 3.0f;
+                                                                                  [alert show];
+                                                                                  [alert release];
+                                                                              });
+                                                                          }
+                                                                          else {
+                                                                              [self checkHackerSpaceStatus];
+                                                                          }
+                                                                          if( DEBUG ) NSLog( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
+                                                                          
+                                                                      }];
+                                                                  }
+                                                                  else {
+                                                                      if( DEBUG ) NSLog( @"TRYING TO OPEN SPACE..." );
+                                                                      [self apiOpenSpaceWithBlock:^(HSBStatus *status, NSError *error) {
+                                                                          if( error ) {
+                                                                              NSError *jsonParsingError = nil;
+                                                                              NSData *jsonAsData = [[error localizedRecoverySuggestion] dataUsingEncoding:NSUTF8StringEncoding];
+                                                                              id jsonError = [NSJSONSerialization JSONObjectWithData:jsonAsData options:NSJSONReadingAllowFragments error:&jsonParsingError];
+                                                                              HSBError *fetchedError= [[HSBError class] objectFromJSONObject:jsonError mapping:[[HSBError class] objectMapping]];
+                                                                              
+                                                                              dispatch_async(dispatch_get_main_queue(), ^{
+                                                                                  NSString *message = [NSString stringWithFormat:@"Fehler: %li - %@",(long)[fetchedError.errorCode integerValue], fetchedError.errorMessage];
+                                                                                  
+                                                                                  AMSmoothAlertView *alert = nil;
+                                                                                  alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Problem" andText:message andCancelButton:NO forAlertType:AlertFailure];
+                                                                                  alert.delegate = nil;
+                                                                                  [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
+                                                                                  [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
+                                                                                  alert.cornerRadius = 3.0f;
+                                                                                  [alert show];
+                                                                                  [alert release];
+                                                                              });
+                                                                          }
+                                                                          else {
+                                                                              [self checkHackerSpaceStatus];
+                                                                          }
+                                                                          if( DEBUG ) NSLog( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
+                                                                      }];
+                                                                  }                                                                  
+                                                                  
+                                                              }];
     }
     else {
         messageString = [NSString stringWithFormat:@"Der %@, %@ ist jetzt %@.%@%@", hackerspaceBremenStatus.spaceName, hackerspaceBremenStatus.spaceAddress, stateString, spaceStateReason, contactString];
-        alert = [[UIAlertView alloc] initWithTitle:@"Information" message:messageString delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
     }
-    alert.tag = kALERT_TAG_CHANGE_SPACE_STATUS;
-    [alert show];
-    [alert release];
+    // alert.tag = kALERT_TAG_CHANGE_SPACE_STATUS;
+
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Information"
+                                                                   message:messageString
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"Fertig" style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                              // stuff
+                                                          }];
+    if( statusAction ) {
+        [alert addAction:statusAction];
+    }
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:nil];
+
+
+
 }
 
 - (IBAction) actionRefreshCalendarManually:(id)sender {
@@ -765,7 +838,6 @@
     }
     else {
         [[self appDelegate] addToFavoritesEvent:event];
-        [self displayAddStarAnimationToPoint:favButton.center];
     }
     [self recompileFavoritedEvents];
     [self.tableView reloadRowsAtIndexPaths:[self.tableView indexPathsForVisibleRows] withRowAnimation:UITableViewRowAnimationNone];
@@ -785,101 +857,20 @@
 
 #pragma mark - UIAlertViewDelegate
 
-- (void) alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    switch( alertView.tag ) {
-        case kALERT_TAG_NO_STATUS_NO_NETWORK: {
-            self.isDisplaysNoStatusNoNetworkAlert = NO;
-            break;
-        }
-
-        case kALERT_TAG_NO_NETWORK: {
-            self.isDisplaysNoNetworkAlert = NO;
-            break;
-        }
-
-        case kALERT_TAG_CHANGE_SPACE_STATUS: {
-            if( buttonIndex == alertView.cancelButtonIndex ) { // LOGIN
-                if( [hackerspaceBremenStatus.spaceIsOpen boolValue] ) {
-                    if( DEBUG ) NSLog( @"TRYING TO CLOSE SPACE..." );
-                    [self apiCloseSpaceWithBlock:^(HSBStatus *status, NSError *error) {
-                        if( error ) {
-                            NSError *jsonParsingError = nil;
-                            NSData *jsonAsData = [[error localizedRecoverySuggestion] dataUsingEncoding:NSUTF8StringEncoding];
-                            id jsonError = [NSJSONSerialization JSONObjectWithData:jsonAsData options:NSJSONReadingAllowFragments error:&jsonParsingError];
-                            HSBError *fetchedError= [[HSBError class] objectFromJSONObject:jsonError mapping:[[HSBError class] objectMapping]];
-
-                            dispatch_async(dispatch_get_main_queue(), ^{
-                                NSString *message = [NSString stringWithFormat:@"Der Server antwortete Fehlercode: %li\n%@",(long)[fetchedError.errorCode integerValue], fetchedError.errorMessage];
-
-                                AMSmoothAlertView *alert = nil;
-                                alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Problem" andText:message andCancelButton:NO forAlertType:AlertFailure];
-                                alert.delegate = nil;
-                                [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-                                [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-                                alert.cornerRadius = 3.0f;
-                                [alert show];
-                                [alert release];
-                            });
-                        }
-                        else {
-                            [self checkHackerSpaceStatus];
-                        }
-                        if( DEBUG ) NSLog( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
-                        
-                    }];
-                }
-                else {
-                    if( DEBUG ) NSLog( @"TRYING TO OPEN SPACE..." );
-                    [self apiOpenSpaceWithBlock:^(HSBStatus *status, NSError *error) {
-                        if( error ) {
-                            NSError *jsonParsingError = nil;
-                            NSData *jsonAsData = [[error localizedRecoverySuggestion] dataUsingEncoding:NSUTF8StringEncoding];
-                            id jsonError = [NSJSONSerialization JSONObjectWithData:jsonAsData options:NSJSONReadingAllowFragments error:&jsonParsingError];
-                            HSBError *fetchedError= [[HSBError class] objectFromJSONObject:jsonError mapping:[[HSBError class] objectMapping]];
-
-                            dispatch_async(dispatch_get_main_queue(), ^{
-                                NSString *message = [NSString stringWithFormat:@"Der Server antwortete Fehlercode: %li\n%@",(long)[fetchedError.errorCode integerValue], fetchedError.errorMessage];
-                                
-                                AMSmoothAlertView *alert = nil;
-                                alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Problem" andText:message andCancelButton:NO forAlertType:AlertFailure];
-                                alert.delegate = nil;
-                                [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-                                [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-                                alert.cornerRadius = 3.0f;
-                                [alert show];
-                                [alert release];
-                            });
-                        }
-                        else {
-                            [self checkHackerSpaceStatus];
-                        }
-                        if( DEBUG ) NSLog( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
-                    }];
-                }
-            }
-            break;
-        }
-            
-        default:
-            break;
-    }
-}
-
-#pragma mark - UIActionSheetDelegate
-
-- (void) actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    switch( actionSheet.tag ) {
-            
-        case 200: { // add event
-            if( buttonIndex == actionSheet.firstOtherButtonIndex ) {
-                [self addEventToCalendarAtSelectedRow:selectedRow];
-            }
-            break;
-        }
-            
-        default:
-            break;
-    }
+- (void) alertWithTitle:(NSString*)title message:(NSString*)message callback:(void(^)(void))callback {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                              if( callback ) {
+                                                                  callback();
+                                                              }
+                                                          }];
+    
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void) addEventToCalendarAtSelectedRow:(NSInteger)rowIndex {
@@ -1107,18 +1098,11 @@
     UIColor *cellBackColor = (indexPath.row % 2 == 0) ? [UIColor whiteColor] : [UIColor colorWithRGBHex:0xf0f0f0];
 
     self.cellBackground = [[[SilverDesignView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.bounds.size.width, cellHeight)] autorelease];
-    if( [UIDevice currentDevice].versionAsInteger < 7 ) {
-        cellBackground.colorTop = [UIColor colorWithHexString:@"FFFFFF"];
-        cellBackground.colorBottom = [UIColor colorWithHexString:@"F9F9F9"];
-        cellBackground.colorLineBright = [UIColor whiteColor];
-        cellBackground.colorLineDark = [[UIColor darkGrayColor] colorByLighteningTo:0.5];
-    }
-    else {
-        cellBackground.colorTop = cellBackColor;
-        cellBackground.colorBottom = cellBackColor;
-        cellBackground.colorLineBright = cellBackColor;
-        cellBackground.colorLineDark = cellBackColor;
-    }
+    cellBackground.colorTop = cellBackColor;
+    cellBackground.colorBottom = cellBackColor;
+    cellBackground.colorLineBright = cellBackColor;
+    cellBackground.colorLineDark = cellBackColor;
+
     cellBackground.backgroundColor = [UIColor clearColor];
     cellBackground.useFancyGradient = NO;
     cellBackground.autoresizesSubviews = YES;
@@ -1127,18 +1111,11 @@
     
     // BACKGROUND SELECTED
     self.cellBackgroundSelected = [[[SilverDesignView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.bounds.size.width, cellHeight)] autorelease];
-    if( [UIDevice currentDevice].versionAsInteger < 7 ) {
-        cellBackgroundSelected.colorTop = [UIColor colorWithHexString:@"CCCCCC"];
-        cellBackgroundSelected.colorBottom = [UIColor colorWithHexString:@"AAAAAA"];
-        cellBackgroundSelected.colorLineBright = [UIColor whiteColor];
-        cellBackgroundSelected.colorLineDark = [[UIColor darkGrayColor] colorByLighteningTo:0.5];
-    }
-    else {
-        cellBackground.colorTop = cellBackColor;
-        cellBackground.colorBottom = cellBackColor;
-        cellBackground.colorLineBright = cellBackColor;
-        cellBackground.colorLineDark = cellBackColor;
-    }
+    cellBackground.colorTop = cellBackColor;
+    cellBackground.colorBottom = cellBackColor;
+    cellBackground.colorLineBright = cellBackColor;
+    cellBackground.colorLineDark = cellBackColor;
+    
     cellBackgroundSelected.backgroundColor = [UIColor clearColor];
     cellBackgroundSelected.useFancyGradient = NO;
     cellBackgroundSelected.autoresizesSubviews = YES;
@@ -1284,37 +1261,21 @@
     CGFloat height50 = 30.0f;
     CGFloat height20 = 19.0f;
     UIView *containerView = [[[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.bounds.size.width, height50)] autorelease];
-    CGFloat offset = 0.0;
     
     UIView *someView = nil;
-    if( [UIDevice currentDevice].versionAsInteger < 7 ) {
-        SilverDesignView *silverView = [[[SilverDesignView alloc] initWithFrame:CGRectMake(offset, 0.0, self.view.bounds.size.width-(2.0*offset), height50)] autorelease];
-        [containerView addSubview:silverView];
-        silverView.colorTop = kCOLOR_HACKERSPACE;
-        silverView.colorBottom = kCOLOR_HACKERSPACE_VERY_DARK;
-        silverView.colorLineBright = [[UIColor blackColor] colorWithAlphaComponent:0.5];
-        silverView.colorLineDark = [[UIColor whiteColor] colorWithAlphaComponent:0.5];
-        silverView.backgroundColor = [UIColor clearColor];
-        silverView.useFancyGradient = NO;
-        silverView.autoresizesSubviews = YES;
-        silverView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-        silverView.hasRoundCornersTop = NO;
-        someView = silverView;
-    }
-    else {
-        someView = [[[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.bounds.size.width, height50)] autorelease];
-        [containerView addSubview:someView];
-        someView.backgroundColor = kCOLOR_HACKERSPACE;
-        someView.opaque = YES;
-    }
+    someView = [[[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.bounds.size.width, height50)] autorelease];
+    [containerView addSubview:someView];
+    someView.backgroundColor = kCOLOR_HACKERSPACE;
+    someView.opaque = YES;
+
     CGFloat inset = 10.0f;
     self.latestHeaderSectionLabel = [[[UILabel alloc] initWithFrame:CGRectMake(inset, 0.0, someView.bounds.size.width-(2.0*inset), height50)] autorelease];
     [someView addSubview:latestHeaderSectionLabel];
     latestHeaderSectionLabel.backgroundColor = [UIColor clearColor];
     latestHeaderSectionLabel.font = [UIFont boldSystemFontOfSize:height20];
     if( [[UIDevice currentDevice] versionAsInteger] < 7 ) {
-        latestHeaderSectionLabel.shadowColor = [[UIColor blackColor] colorWithAlphaComponent:0.4];
-        latestHeaderSectionLabel.shadowOffset = CGSizeMake(0.0, 1.0);
+        latestHeaderSectionLabel.shadowColor = [UIColor clearColor];
+        latestHeaderSectionLabel.shadowOffset = CGSizeMake(0.0, 0.0);
     }
     latestHeaderSectionLabel.textColor = [UIColor colorWithWhite:1.0 alpha:1.0];
     latestHeaderSectionLabel.adjustsFontSizeToFitWidth = YES;
@@ -1428,7 +1389,9 @@
             favoritesTitle = [NSString stringWithFormat:@"%lu Favoriten", (unsigned long)numOfFavorites];
         }
     }
-    [segmentedControlMenu setTitle:favoritesTitle forSegmentAtIndex:[segmentedControlMenu numberOfSegments]-1]; // last item
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [segmentedControlMenu setTitle:favoritesTitle forSegmentAtIndex:[segmentedControlMenu numberOfSegments]-1]; // last item
+    });
 }
 
 - (void)processEvents:(NSArray *)events
@@ -1454,7 +1417,7 @@
     // STEP 1: alles in MONATSNAME JAHRESZAHL sections
     // STEP 2: component des Jahres und monats ermitteln und einfach durchzählen
     
-    NSUInteger units = (NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit );
+    NSUInteger units = (NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay );
     NSCalendar *calendar = [NSCalendar currentCalendar];
     
     NSDate *nowDate = [NSDate date];
@@ -1573,132 +1536,7 @@ CGPoint leftMapNormalPosition;
     return pointFound;
 }
 
-
--(void) addAnimationPathToLayer:(CALayer*)layerToModify fromPoint:(CGPoint)startPointAnimation {
-    /*
-    CGPoint startPoint = CGPointMake(startPointAnimation.x, startPointAnimation.y); // CGPointMake(700, 950);
-    CGPoint controlPoint1 = CGPointMake(30, -30);
-    CGPoint controlPoint2 = CGPointMake(90, -90);
-    CGPoint endPoint = segmentedControlMenu.center;
-     */
-
-    CGPoint startPoint = CGPointMake(250, 256);
-    CGPoint controlPoint1 = CGPointMake(30, -30);
-    CGPoint controlPoint2 = CGPointMake(90, -90);
-    CGPoint endPoint = CGPointMake(270, 120);
-
-    CGMutablePathRef path = CGPathCreateMutable();
-    CGPathMoveToPoint(path, NULL, startPoint.x, startPoint.y);
-    CGPathAddCurveToPoint(path, NULL,
-                          controlPoint1.x, controlPoint1.y,
-                          controlPoint2.x, controlPoint2.y,
-						  endPoint.x, endPoint.y);
-	
-    CAKeyframeAnimation *keyFrameAnimation =
-    [CAKeyframeAnimation animationWithKeyPath:@"position"];
-    [keyFrameAnimation setDuration:durationFullAnimation];
-    [keyFrameAnimation setPath:path];
-	
-	CAMediaTimingFunction* accelerated = [CAMediaTimingFunction functionWithControlPoints:0.7 : 0.2 :0.9 :0.95];
-    [keyFrameAnimation setTimingFunction:accelerated];
-    
-    [layerToModify addAnimation:keyFrameAnimation forKey:@"FLYINGSTAR"];
-    [layerToModify setPosition:endPoint];
-    CFRelease(path);
-}
-
-
-- (void) animateViewPart1:(UIView*)viewToAnim {
-	oldTransform = [viewToAnim transform];
-	CGAffineTransform rotate1 = CGAffineTransformMakeRotation( 2 * M_PI * 0.25);
-	rotate1 = CGAffineTransformScale( rotate1, 2.0, 2.0 );
-	CGAffineTransform effect1 = CGAffineTransformConcat( oldTransform, rotate1 );
-	
-	[UIView beginAnimations:@"myAnimationPart1" context:nil];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationWillStartSelector:@selector(didStart:context:)];
-	[UIView setAnimationDidStopSelector:@selector(didStop:finished:context:)];
-	[UIView setAnimationCurve:UIViewAnimationCurveLinear];
-	[UIView setAnimationDuration:durationPartAnimation];
-	[UIView setAnimationRepeatCount:1];
-	[viewToAnim setTransform:effect1];
-	[UIView commitAnimations];
-}
-
-- (void) animateViewPart2:(UIView*)viewToAnim {
-	CGAffineTransform rotate2 = CGAffineTransformMakeRotation( 2 * M_PI * 0.25);
-	// CGAffineTransform rotate2 = CGAffineTransformMakeRotation( 90 * M_PI / 180);
-	rotate2 = CGAffineTransformScale( rotate2, 2.0, 2.0 );
-	CGAffineTransform effect2 = CGAffineTransformConcat( [viewToAnim transform], rotate2 );
-	
-	[UIView beginAnimations:@"myAnimationPart2" context:nil];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationWillStartSelector:@selector(didStart:context:)];
-	[UIView setAnimationDidStopSelector:@selector(didStop:finished:context:)];
-	[UIView setAnimationCurve:UIViewAnimationCurveLinear];
-	[UIView setAnimationDuration:durationPartAnimation];
-	[UIView setAnimationRepeatCount:1];
-	[viewToAnim setTransform:effect2]; // apply effect
-	[UIView commitAnimations];
-}
-
-
-- (void) animateViewPart3:(UIView*)viewToAnim {
-	CGAffineTransform rotate3 = CGAffineTransformMakeRotation( 2 * M_PI * 0.25);
-	rotate3 = CGAffineTransformScale( rotate3, 0.5, 0.5 );
-	CGAffineTransform effect3 = CGAffineTransformConcat( [viewToAnim transform], rotate3 );
-	
-	[UIView beginAnimations:@"myAnimationPart3" context:nil];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationWillStartSelector:@selector(didStart:context:)];
-	[UIView setAnimationDidStopSelector:@selector(didStop:finished:context:)];
-	[UIView setAnimationCurve:UIViewAnimationCurveLinear];
-	[UIView setAnimationDuration:durationPartAnimation];
-	[UIView setAnimationRepeatCount:1];
-	[viewToAnim setTransform:effect3]; // apply effect
-	[UIView commitAnimations];
-}
-
-- (void) animateViewPart4:(UIView*)viewToAnim {
-	CGAffineTransform rotate4 = CGAffineTransformMakeRotation(  2 * M_PI * 0.25);
-	rotate4 = CGAffineTransformScale( rotate4, 0.5, 0.5 );
-	CGAffineTransform effect4 = CGAffineTransformConcat( [viewToAnim transform], rotate4 );
-	
-	[UIView beginAnimations:@"myAnimationPart4" context:nil];
-	[UIView setAnimationDelegate:self];
-	[UIView setAnimationWillStartSelector:@selector(didStart:context:)];
-	[UIView setAnimationDidStopSelector:@selector(didStop:finished:context:)];
-	[UIView setAnimationCurve:UIViewAnimationCurveLinear];
-	[UIView setAnimationDuration:durationPartAnimation];
-	[UIView setAnimationRepeatCount:1];
-	[viewToAnim setTransform:effect4]; // apply effect
-	[UIView commitAnimations];
-}
-
-
-- (void) displayAddStarAnimationToPoint:(CGPoint)startPointAnimation {
-    return;
-	if( self.animatedStar == nil ) {
-		self.animatedStar = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"star_button_selected.png"]];
-	}
-	else {
-		[self.animatedStar setHidden:NO];
-	}
-    CGPoint startPoint = startPointAnimation; // CGPointMake(10 , 35);
-    // NSLog( @"STARTPOINT IS: %@", NSStringFromCGPoint(startPoint) );
-	[self.animatedStar setUserInteractionEnabled:NO];
-	[self.animatedStar setBackgroundColor:[UIColor clearColor]];
-	[self.animatedStar setOpaque:NO];
-	[self.view addSubview:self.animatedStar]; // place in view
-	[self.animatedStar setFrame:CGRectMake( startPoint.x, startPoint.y, 46, 44 )];
-	
-	// step 2: setup animation path
-	[self addAnimationPathToLayer:[self.animatedStar layer] fromPoint:startPoint];
-	[self animateViewPart1:self.animatedStar];
-}
-
-- (NSOperationQueue *)operationQueue
-{
+- (NSOperationQueue *)operationQueue {
     if (_operationQueue) {
         return _operationQueue;
     }

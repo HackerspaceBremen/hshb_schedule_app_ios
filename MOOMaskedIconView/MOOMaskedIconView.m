@@ -466,8 +466,8 @@ NSCache *_defaultMaskCache;
 
 - (CGSize)sizeThatFits:(CGSize)size;
 {
-    const CGFloat scale = [UIScreen mainScreen].scale;
-    CGSize newSize = CGSizeMake(CGImageGetWidth(self.mask) / scale + MAX(fabsf(self.shadowOffset.width), 2.0f * self.outerGlowRadius), CGImageGetHeight(self.mask) / scale + MAX(fabsf(self.shadowOffset.height), 2.0f * self.outerGlowRadius));
+    const float scale = [UIScreen mainScreen].scale;
+    CGSize newSize = CGSizeMake(CGImageGetWidth(self.mask) / scale + MAX(fabsf((float)self.shadowOffset.width), 2.0f * self.outerGlowRadius), CGImageGetHeight(self.mask) / scale + MAX(fabsf((float)self.shadowOffset.height), 2.0f * self.outerGlowRadius));
     return newSize;
 }
 
@@ -1067,7 +1067,7 @@ static CGImageRef CGImageCreateInvertedMaskWithMask(CGImageRef sourceMask)
     
 	const size_t pixelsCount = width * height;
 	float* dataAsFloat = (float*)malloc(sizeof(float) * pixelsCount);
-    CGFloat min = 0.0f, max = 255.0f;
+    float min = 0.0f, max = 255.0f;
 	UInt8* dataGray = data + 1;
     
 	/// vDSP_vsmsa() = multiply then add
