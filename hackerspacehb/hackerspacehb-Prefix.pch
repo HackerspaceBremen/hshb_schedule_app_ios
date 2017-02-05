@@ -55,6 +55,9 @@
 
 #define kHACKERSPACE_DEFAULT_TWITTER_ACCOUNT @"hspacehb"
 
+#define kHACKERSPACE_APPSTORE_URL           @"https://itunes.apple.com/de/app/hackerspace-bremen/id707128929?mt=8"
+
+
 #if TESTING
 #define kHACKERSPACE_API_BASE_URL           kHACKERSPACE_API_BASE_URL_TEST
 #else

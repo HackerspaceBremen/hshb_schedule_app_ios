@@ -273,7 +273,11 @@
                                                                        message:nil
                                                                 preferredStyle:UIAlertControllerStyleActionSheet];
         
-        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter senden" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+        UIAlertAction* shareAction = [UIAlertAction actionWithTitle:@"Medien teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            [self actionShare];
+        }];
+        
+        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
             // TWITTER TEILEN
             [self actionShareViaTwitter];
         }];
@@ -286,6 +290,7 @@
         }];
 
         [alert addAction:removeAction];
+        [alert addAction:shareAction];
         [alert addAction:twitterAction];
         [alert addAction:cancelAction];
         [self presentViewController:alert animated:YES completion:nil];
@@ -294,8 +299,11 @@
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:sheetTitle
                                                                        message:nil
                                                                 preferredStyle:UIAlertControllerStyleActionSheet];
-        
-        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter senden" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+        UIAlertAction* shareAction = [UIAlertAction actionWithTitle:@"Medien teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            [self actionShare];
+        }];
+
+        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
             // TWITTER TEILEN
             [self actionShareViaTwitter];
         }];
@@ -308,6 +316,7 @@
         }];
         
         [alert addAction:removeAction];
+        [alert addAction:shareAction];
         [alert addAction:twitterAction];
         [alert addAction:cancelAction];
         [self presentViewController:alert animated:YES completion:nil];
@@ -444,6 +453,56 @@
             });
         }
     }];
+}
+
+- (IBAction)actionShare {
+    
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    NSLocale *locale = [NSLocale currentLocale];
+    [df setLocale:locale];
+    df.timeStyle = NSDateFormatterNoStyle;
+    df.dateStyle = NSDateFormatterFullStyle;
+    NSString *dateString = [df stringFromDate:eventToDisplay.StartDate];
+    [df setDateFormat:@"H:mm"];
+    
+    NSString *payloadDateTimeString = [NSString stringWithFormat:@"%@\n%@ bis %@ Uhr", dateString, [df stringFromDate:eventToDisplay.StartDate], [df stringFromDate:eventToDisplay.EndDate]];
+    
+    [df release], df = nil;
+    
+    NSString *payloadTitle = eventToDisplay.Title;
+    
+    NSMutableString *descriptionText = [NSMutableString string];
+    if( eventToDisplay.Description ) {
+        [descriptionText appendFormat:@"%@", eventToDisplay.Description];
+    }
+    if( eventToDisplay.where ) {
+        if( [descriptionText length] > 0 ) {
+            [descriptionText appendString:@"\n\n"];
+        }
+        [descriptionText appendFormat:@"%@", eventToDisplay.where];
+    }
+    NSString *payloadBody = [NSString stringWithString:descriptionText];
+    
+    
+    NSString *contentMailSubjectText = @"Veranstaltungstipp Hackerspace Bremen e.V.";
+    
+    NSString *contentBrandingText = [NSString stringWithFormat:@"%@\n%@\n\n%@\n\n%@:\n%@ %@\nim AppStore:\n%@", payloadTitle,payloadDateTimeString,  payloadBody, @"Quelle", @"Hackerspace Bremen e.V.", @"(iOS App)", kHACKERSPACE_APPSTORE_URL];
+    
+    NSArray *itemsToShare = nil;
+    itemsToShare = @[contentBrandingText];
+    
+    NSArray *applicationActivities = @[];
+    
+    UIActivityViewController *controller = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:applicationActivities];
+    // SET E-MAIL SUBJECT
+    [controller setValue:contentMailSubjectText forKey:@"subject"];
+    
+    controller.excludedActivityTypes = @[UIActivityTypeAssignToContact,UIActivityTypePostToWeibo];
+    
+    controller.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
+        if( DEBUG ) NSLog( @" activityType: %@ completed: %@", activityType, completed ? @"YES" : @"NO" );
+    };
+    [self presentViewController:controller animated:YES completion:nil];
 }
 
 - (IBAction) actionShareViaTwitter {
