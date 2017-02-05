@@ -5,7 +5,9 @@ Hackerspace Bremen App (iOS)
 Eine App für mobile iOS Geräte, die über das **aktuelle Programm im Hackerspace Bremen** informiert.
 
 ## Screenshot
-![image](http://www.thetawelle.de/wp-upload/hackerspace_hb_ios6_smart.png)
+Der Screenshot [in voller Größe](http://www.noxymo.com/filespublic/hshb_app_screen_full.png) und hier in klein...
+
+![image](http://www.noxymo.com/filespublic/hshb_app_screen_small.png)
 
 ## Download
 Die App ist im **AppStore** verfügbar und kann dort kostenlos [heruntergeladen](https://itunes.apple.com/us/app/hackerspace-bremen/id707128929?mt=8) werden zur Installation.
@@ -19,7 +21,7 @@ Die App stellt **folgende Funktionen** bereit:
 * Detailinformationen über einzelne Events
 * Markieren von Favoriten für zukünftige Events
 * Übernehmen/Vormerken von Events in dem eigenen Kalender
-* Sharing von Eventinformationen via Twitter
+* Sharing von Eventinformationen via Twitter und anderen Kanälen
 * Direktzugriff auf Homepage mit integriertem Browser
 * Keyholder-Funktion, um Space zu öffnen & zu schließen (nur für Administratoren)
 
@@ -30,7 +32,8 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Versionen
 
-* Version 2.0 (??.11.2016)
+* Version 2.1 (??.2.2017)
+* Version 2.0 (23.11.2016)
 * Version 1.5 (16.7.2015)
 * Version 1.4 (17.1.2015)
 * Version 1.3 (25.6.2014)
@@ -40,8 +43,6 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Kontakt
 Wer Vorschläge hat für die App, z.B. zur **weiteren Verbesserung**, der kann diese gerne übermitteln an zum Beispiel [trailblazr@noxymo.com](mailto:trailblazr@noxymo.com) oder per Twitter an [@hspacehb](http://twitter.com/@hspacehb) den Twitter-Account des [Hackerspace Bremen](https://www.hackerspace-bremen.de/).
-
-Eine weitere Möglichkeit besteht darin, die [CocoaHeads Bremen](http://cocoaheads.org:8106/de/Bremen/index.html) Gruppe zu besuchen, die sich einmal im Monat im Hackerspace trifft.
 
 ## API
 Die App nutzt das [OpenSpace Notifier Backend](https://code.google.com/p/hackerspace-bremen/wiki/Backend) bzw. kommuniziert mit dem [OpenSpace-Melder](https://hackerspacehb.appspot.com/). 
