@@ -32,7 +32,7 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Versionen
 
-* Version 2.1 (??.2.2017)
+* Version 2.1 (6.2.2017)
 * Version 2.0 (23.11.2016)
 * Version 1.5 (16.7.2015)
 * Version 1.4 (17.1.2015)
