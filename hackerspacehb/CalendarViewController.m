@@ -254,8 +254,8 @@
 }
 
 - (BOOL) hasValidOpenSpaceAccessData {
-    NSString *uid = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
-    NSString *pwd = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+    NSString *uid = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+    NSString *pwd = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     return( uid && [uid length] > 0 && pwd && [pwd length] > 0 );
 }
 
@@ -364,8 +364,8 @@
 
 - (void) apiOpenSpaceWithBlock:( void (^)( HSBStatus *status, NSError *error ) )block {
     // https://hackerspacehb.appspot.com/v2/cmd/open
-    NSString *userName = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
-    NSString *userPassword = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+    NSString *userName = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+    NSString *userPassword = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     NSString *defaultUserMessage = [NSString stringWithFormat:@"Der Hackerspace ist jetzt geöffnet! (Keykeeper: %@)", userName];
     NSString *userMessage = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
     if( !userMessage || [userMessage length] == 0 ) {
@@ -392,8 +392,8 @@
 
 - (void) apiCloseSpaceWithBlock:( void (^)( HSBStatus *status, NSError *error ) )block {
     // https://hackerspacehb.appspot.com/v2/cmd/open
-    NSString *userName = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
-    NSString *userPassword = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+    NSString *userName = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+    NSString *userPassword = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     NSString *defaultUserMessage = [NSString stringWithFormat:@"Der Hackerspace ist jetzt geschlossen! (Keykeeper: %@)", userName];
     NSString *userMessage = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
     if( !userMessage || [userMessage length] == 0 ) {
@@ -1167,6 +1167,8 @@
         df.doesRelativeDateFormatting = YES;
         
         NSString *startDateStr = [df stringFromDate:currentGoogleEvent.StartDate];
+        [df setDateFormat:@"EE"];
+        NSString *startDateDayStr = [df stringFromDate:currentGoogleEvent.StartDate];
         
         BOOL isToday = [self isSameDayDate:[NSDate date] asDate:currentGoogleEvent.StartDate];
         cell.textLabel.textColor = isToday ? kCOLOR_HACKERSPACE : [UIColor blackColor];
@@ -1174,7 +1176,7 @@
         
         [df setDateFormat:@"H:mm"];
 
-        NSString *hoursOpen = [NSString stringWithFormat:@"%@, %@ bis %@ Uhr", startDateStr, [df stringFromDate:currentGoogleEvent.StartDate], [df stringFromDate:currentGoogleEvent.EndDate]];
+        NSString *hoursOpen = [NSString stringWithFormat:@"%@ (%@), %@ bis %@ Uhr", startDateStr, startDateDayStr, [df stringFromDate:currentGoogleEvent.StartDate], [df stringFromDate:currentGoogleEvent.EndDate]];
         cell.textLabel.text = [NSString stringWithFormat:@"%@", currentGoogleEvent.Title ];
         NSString *descriptionString = hoursOpen;
         if( currentGoogleEvent.Description ) {
@@ -1234,8 +1236,6 @@
             [button addTarget:self action:@selector(actionFavoriteEvent:) forControlEvents:UIControlEventTouchUpInside];
             [button addSubview:calendarIconView];
             calendarIconView.center = button.center;
-            // [button setBackgroundImage:buttonImage forState:UIControlStateHighlighted];
-            // [button setBackgroundImage:buttonImage forState:UIControlStateNormal];
             calendarIconView.tag = [indexPath section];
             button.tag = [indexPath row];
             cell.accessoryView = button;

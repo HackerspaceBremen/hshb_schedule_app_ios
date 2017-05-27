@@ -20,6 +20,9 @@
     #import "UIDevice+Smokebox.h"
 #endif
 
+// LOGGING
+#define LOG( someString, ... )                          if( DEBUG ) NSLog( someString, ##__VA_ARGS__ )          // DEBUGGING
+
 // THIS STUFF MUST BE ZERO ON DEPLOYMENT
 #define DEBUG_MASTER                        0
 #define TESTING                             0 // uid: somename (ask admin before) pwd: somepassword
@@ -46,6 +49,10 @@
 // NSCoding strings
 #define kNSCODER_FILENAME_PREFIX @"STORED"
 #define kNSCODER_ROOT_ARCHIVE_KEY @"ROOTARCHIVE"
+
+// KEYCHAIN
+#define kKEYCHAIN_REVERSE_URL_IDENTIFIER            @"com.noxymo.FDKeychain"
+#define kKEYCHAIN_GROUP_NAME_KEY                    @"keyChainGroupKey_space"
 
 // BACKEND OF OPENSPACE
 // https://code.google.com/p/hackerspace-bremen/wiki/Backend

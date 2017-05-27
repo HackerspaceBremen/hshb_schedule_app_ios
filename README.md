@@ -32,6 +32,7 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Versionen
 
+* Version 2.2 (27.5.2017)
 * Version 2.1 (6.2.2017)
 * Version 2.0 (23.11.2016)
 * Version 1.5 (16.7.2015)
@@ -42,7 +43,7 @@ Die App stellt **folgende Funktionen** bereit:
 * Version 1.0 (26.9.2013)
 
 ## Kontakt
-Wer Vorschläge hat für die App, z.B. zur **weiteren Verbesserung**, der kann diese gerne übermitteln an zum Beispiel [trailblazr@noxymo.com](mailto:trailblazr@noxymo.com) oder per Twitter an [@hspacehb](http://twitter.com/@hspacehb) den Twitter-Account des [Hackerspace Bremen](https://www.hackerspace-bremen.de/).
+Wer Vorschläge hat für die App, z.B. zur **weiteren Verbesserung**, der kann diese gerne übermitteln an zum Beispiel [trailblazr@hackerspace-bremen.de](mailto:trailblazr@hackerspace-bremen.de) oder per Twitter an [@hspacehb](http://twitter.com/@hspacehb) den Twitter-Account des [Hackerspace Bremen](https://www.hackerspace-bremen.de/).
 
 ## API
 Die App nutzt das [OpenSpace Notifier Backend](https://code.google.com/p/hackerspace-bremen/wiki/Backend) bzw. kommuniziert mit dem [OpenSpace-Melder](https://hackerspacehb.appspot.com/). 

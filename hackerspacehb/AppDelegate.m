@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "FDKeychain.h"
 
 #import "EventDetailViewController.h"
 #import "CalendarViewController.h"
@@ -33,6 +34,42 @@
 
 - (UIApplication*)application {
     return [UIApplication sharedApplication];
+}
+
+- (void) ensureSafeStorage {
+    NSString *uid = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+    NSString *pwd = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+    if( uid ) { // transfer
+        [self tokenStore:uid withKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+    }
+    if( pwd ) { // transfer
+        [self tokenStore:pwd withKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+    }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (void) tokenStore:(NSString*)token withKey:(NSString*)key {
+    NSError *error = nil;
+    [FDKeychain saveItem:token forKey:key forService:kKEYCHAIN_GROUP_NAME_KEY error:&error];
+    if( error ) {
+        //LOG( @"ERROR: WRITING ITEM SAFELY TO KEYCHAIN." );
+    }
+    //LOG( @"SAVED TOKEN (%@): %@", key, token );
+}
+
+- (NSString*) tokenStoredWithKey:(NSString*)key {
+    NSError *error = nil;
+    NSString *token = (NSString*)[FDKeychain itemForKey:key forService:kKEYCHAIN_GROUP_NAME_KEY error:&error];
+    if( error ) {
+        //LOG( @"ERROR: READING ITEM SAFELY FROM KEYCHAIN." );
+    }
+    else {
+        
+    }
+    //LOG( @"RESTORED TOKEN( %@ ): %@", key, token );
+    return token;
 }
 
 #pragma mark - convenience for favorites
@@ -130,6 +167,7 @@
     self.rootNavController.navigationBar.backIndicatorImage = indicatorImage;
     self.rootNavController.navigationBar.backIndicatorTransitionMaskImage = indicatorImage;
 
+    [self ensureSafeStorage];
     
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
     [self.window makeKeyAndVisible];

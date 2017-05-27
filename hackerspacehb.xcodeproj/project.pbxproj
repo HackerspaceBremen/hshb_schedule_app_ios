@@ -56,6 +56,7 @@
 		8F880F1F17E1B1AB00E13B6D /* JTMappings.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F880F1A17E1B1AB00E13B6D /* JTMappings.m */; };
 		8F880F2017E1B1AB00E13B6D /* NSObject+JTObjectMapping.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F880F1C17E1B1AB00E13B6D /* NSObject+JTObjectMapping.m */; };
 		8F880F2217E1BB6A00E13B6D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F880F2117E1BB6A00E13B6D /* QuartzCore.framework */; };
+		8F8F4A071ED9A118004D6E0E /* FDKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F8F4A061ED9A118004D6E0E /* FDKeychain.m */; };
 		8F917B8D1DE303A000AACE9F /* icon_back_elegant.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F917B8A1DE303A000AACE9F /* icon_back_elegant.png */; };
 		8F917B8E1DE303A000AACE9F /* icon_back_elegant@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F917B8B1DE303A000AACE9F /* icon_back_elegant@2x.png */; };
 		8F917B8F1DE303A000AACE9F /* icon_back_elegant@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F917B8C1DE303A000AACE9F /* icon_back_elegant@3x.png */; };
@@ -210,6 +211,8 @@
 		8F880F1B17E1B1AB00E13B6D /* NSObject+JTObjectMapping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+JTObjectMapping.h"; sourceTree = "<group>"; };
 		8F880F1C17E1B1AB00E13B6D /* NSObject+JTObjectMapping.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = "NSObject+JTObjectMapping.m"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		8F880F2117E1BB6A00E13B6D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		8F8F4A051ED9A118004D6E0E /* FDKeychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FDKeychain.h; sourceTree = "<group>"; };
+		8F8F4A061ED9A118004D6E0E /* FDKeychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FDKeychain.m; sourceTree = "<group>"; };
 		8F917B8A1DE303A000AACE9F /* icon_back_elegant.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_back_elegant.png; sourceTree = SOURCE_ROOT; };
 		8F917B8B1DE303A000AACE9F /* icon_back_elegant@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_back_elegant@2x.png"; sourceTree = SOURCE_ROOT; };
 		8F917B8C1DE303A000AACE9F /* icon_back_elegant@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_back_elegant@3x.png"; sourceTree = SOURCE_ROOT; };
@@ -351,6 +354,7 @@
 				8F4684B817DE735800D2137D /* GoogleCalendar */,
 				8FF98C0117E0D9EE00AEA544 /* MOOMaskedIconView */,
 				8FFE081517E25EBC00B53224 /* SinaUrlConnection */,
+				8F8F4A041ED9A118004D6E0E /* FDKeychain */,
 				8FA5D28E1951ED6100237548 /* FXBlurView */,
 				8FA5D2751951BAE000237548 /* AMSmoothAlert */,
 				8F880F0D17E1B11400E13B6D /* Jastor */,
@@ -570,6 +574,15 @@
 			path = JTObjectMapping;
 			sourceTree = SOURCE_ROOT;
 		};
+		8F8F4A041ED9A118004D6E0E /* FDKeychain */ = {
+			isa = PBXGroup;
+			children = (
+				8F8F4A051ED9A118004D6E0E /* FDKeychain.h */,
+				8F8F4A061ED9A118004D6E0E /* FDKeychain.m */,
+			);
+			path = FDKeychain;
+			sourceTree = SOURCE_ROOT;
+		};
 		8FA5D2751951BAE000237548 /* AMSmoothAlert */ = {
 			isa = PBXGroup;
 			children = (
@@ -723,8 +736,8 @@
 				ORGANIZATIONNAME = appdoctors;
 				TargetAttributes = {
 					8F46846017DE19EB00D2137D = {
-						DevelopmentTeam = 3E2F77GV8B;
-						ProvisioningStyle = Automatic;
+						DevelopmentTeam = 87X5825Q8W;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -864,6 +877,7 @@
 				8F21CF6F17E5D46000902F48 /* RegexKitLite.m in Sources */,
 				8F21CF7017E5D46000902F48 /* UIDevice+Smokebox.m in Sources */,
 				321E19DAFC549B2557E58892 /* HSHBDownloadCalendarEventsOperation.m in Sources */,
+				8F8F4A071ED9A118004D6E0E /* FDKeychain.m in Sources */,
 				321E19FF94FA782F531F24B3 /* GoogleCalendarEvent+HSHBAdditions.m in Sources */,
 				321E1735FCAEAFC839B29C3F /* NSString+HSHBAdditions.m in Sources */,
 			);
@@ -911,6 +925,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				ONLY_ACTIVE_ARCH = YES;
+				PROVISIONING_PROFILE = "5733059b-9836-40a7-9790-c65912672bf3";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -932,7 +947,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -947,7 +962,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "e81f37a1-8e4c-49be-8356-d1944ec3e530";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -962,7 +977,7 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 3E2F77GV8B;
+				DEVELOPMENT_TEAM = 87X5825Q8W;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -974,6 +989,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.noxymo.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "5733059b-9836-40a7-9790-c65912672bf3";
+				PROVISIONING_PROFILE_SPECIFIER = "hshb Development 2017";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
@@ -986,8 +1003,8 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 3E2F77GV8B;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				DEVELOPMENT_TEAM = 87X5825Q8W;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -999,9 +1016,9 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.noxymo.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "e81f37a1-8e4c-49be-8356-d1944ec3e530";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "hshb Distribution 2017";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};

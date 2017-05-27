@@ -7,6 +7,7 @@
 //
 
 #import "SettingsViewController.h"
+#import "AppDelegate.h"
 
 @implementation SettingsViewController
 
@@ -48,6 +49,12 @@
     if (self) {
     }
     return self;
+}
+
+#pragma mark - convenience
+
+- (AppDelegate*) appDelegate {
+    return (AppDelegate*)[UIApplication sharedApplication].delegate;
 }
 
 #pragma mark - view handling
@@ -112,8 +119,8 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    uidTextField.text = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
-    pwdTextField.text = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+    uidTextField.text = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+    pwdTextField.text = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     msgTextView.text = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
     if( !msgTextView.text || [msgTextView.text length] == 0 ) {
         msgTextView.text = kTEXTVIEW_PLACEHOLDER;
@@ -133,8 +140,11 @@
     self.hidesBottomBarWhenPushed = YES;
     [self.navigationController setToolbarHidden:YES animated:NO];
     
-    UIBarButtonItem *validateItem = [[[UIBarButtonItem alloc] initWithTitle:@"Validieren" style:UIBarButtonItemStylePlain target:self action:@selector(actionValidateLogin:)] autorelease];
-    self.navigationItem.rightBarButtonItem = validateItem;
+    //UIBarButtonItem *validateItem = [[[UIBarButtonItem alloc] initWithTitle:@"Validieren" style:UIBarButtonItemStylePlain target:self action:@selector(actionValidateLogin:)] autorelease];
+    //self.navigationItem.rightBarButtonItem = validateItem;
+
+    UIBarButtonItem *revealItem = [[[UIBarButtonItem alloc] initWithTitle:@"Passwort" style:UIBarButtonItemStylePlain target:self action:@selector(actionPasswordToggle:)] autorelease];
+    self.navigationItem.rightBarButtonItem = revealItem;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -143,6 +153,10 @@
 }
 
 #pragma mark - user actions -
+
+- (IBAction) actionPasswordToggle:(id)sender{
+    pwdTextField.secureTextEntry = !pwdTextField.secureTextEntry;
+}
 
 - (IBAction) actionChangeActiveMessage:(UISegmentedControl*)control {
     NSUInteger activeMessageIndex = control.selectedSegmentIndex;
@@ -182,8 +196,8 @@
 
 - (void) saveAllValues {
     @synchronized( [NSUserDefaults standardUserDefaults] ) {
-        [[NSUserDefaults standardUserDefaults] setObject:uidTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
-        [[NSUserDefaults standardUserDefaults] setObject:pwdTextField.text forKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
+        [[self appDelegate] tokenStore:uidTextField.text withKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
+        [[self appDelegate] tokenStore:pwdTextField.text withKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
         [[NSUserDefaults standardUserDefaults] setObject:msgTextView.text forKey:kUSER_DEFAULTS_OPEN_SPACE_MSG];
         // UPDATE STORED MESSAGES
         NSString *messageKey = [NSString stringWithFormat:@"message_%li", (long)spaceMessageControl.selectedSegmentIndex];
@@ -231,8 +245,8 @@
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
-    UIBarButtonItem *validateItem = [[[UIBarButtonItem alloc] initWithTitle:@"Validieren" style:UIBarButtonItemStylePlain target:self action:@selector(actionValidateLogin:)] autorelease];
-    [self.navigationItem setRightBarButtonItem:validateItem animated:YES];
+    UIBarButtonItem *revealItem = [[[UIBarButtonItem alloc] initWithTitle:@"Passwort" style:UIBarButtonItemStylePlain target:self action:@selector(actionPasswordToggle:)] autorelease];
+    [self.navigationItem setRightBarButtonItem:revealItem animated:YES];
     if( msgTextView.text == nil || [msgTextView.text length] == 0 ) {
         msgTextView.text = kTEXTVIEW_PLACEHOLDER;
     }

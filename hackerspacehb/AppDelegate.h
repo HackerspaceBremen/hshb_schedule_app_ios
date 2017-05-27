@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "GoogleCalendarEvent.h"
 #import "HSBStatus.h"
+#import "FDKeychain.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate> {
     
@@ -27,5 +28,7 @@
 
 - (void) addToFavoritesEvent:(GoogleCalendarEvent*)event;
 - (void) removeFromFavoritesEvent:(GoogleCalendarEvent*)event;
+- (void) tokenStore:(NSString*)token withKey:(NSString*)key;
+- (NSString*) tokenStoredWithKey:(NSString*)key;
 
 @end
