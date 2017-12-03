@@ -33,14 +33,42 @@ Die App stellt **folgende Funktionen** bereit:
 ## Versionen
 
 * Version 2.3 (??.12.2017)
+	- Anpassungen für iPhone X und iOS 11
+	- Verbesserter "Gemerkt"-Indikator
+	- Schutz der Zugangsdaten mit Passwort/Biometrie
 * Version 2.2 (27.5.2017)
+	- Datumsanzeige um Wochentag ergänzt
+	- Einstellungen zeigen Passwort für Zugangsdaten auf Wunsch an
+	- Zugangsdaten werden sicher in der KeyChain gespeichert
 * Version 2.1 (6.2.2017)
+	- Sharing von Veranstaltungen/Events per Sharecontroller
 * Version 2.0 (23.11.2016)
+	- Anpassungen für iOS 9 & 10
+	- Aktualisierte UIAlerts
+	- Navigationsleiste & Icons wiederhergestellt
 * Version 1.5 (16.7.2015)
+	- Anpassung für iPhone 6 & 6 Plus
+	- Launch Screen mit Logo
+	- 4 Textspeicher-Slots für Administratoren
+	- Kalenderdatencrash beseitigt
 * Version 1.4 (17.1.2015)
+	- Netzwerkverbindung bei Update verbessert
+	- Kalenderinformationen werden wieder angezeigt
 * Version 1.3 (25.6.2014)
+	- Neuer Abschnitt "Heute" für die Ereignisliste
+	- Anzahl Favoriten sofort erkennbar
+	- UIAlerts für einige Vorgänger verschönert
+	- Hackerspace Homepage vom Hauptbildschirm erreichbar
+	- Einstellungen haben großes Eingabefeld für Status
 * Version 1.2 (23.1.2014)
+	- Problem mit Ereignisübersicht behoben
+	- Verbessertes automatisches Datenupdate
 * Version 1.1 (22.11.2013)
+	- Ladescreen entfernt
+	- Event twittern können hinzugefügt
+	- Events aus Standardkalender auch entfernen können
+	- Anpassungen für iOS 7 (Design & Farben)
+	- Icon erneuert
 * Version 1.0 (26.9.2013)
 
 ## Kontakt
