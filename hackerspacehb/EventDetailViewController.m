@@ -50,18 +50,15 @@
     [super viewDidLoad];
     favoriteBannerLabel.alpha = 0.0;
     self.navigationItem.title = @"Veranstaltung";
-    if( [[UIDevice currentDevice] isOS_7] ) {
-        self.extendedLayoutIncludesOpaqueBars = NO;
-        self.edgesForExtendedLayout = UIRectEdgeNone;
-    }
+    self.extendedLayoutIncludesOpaqueBars = NO;
+    self.edgesForExtendedLayout = UIRectEdgeNone;
     UIBarButtonItem *actionItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionRememberInCalendar:)] autorelease];
     self.navigationItem.rightBarButtonItem = actionItem;
     
-    if( [UIDevice currentDevice].versionAsInteger >= 7 ) {
-        self.dateTimeLabel.shadowOffset = CGSizeMake(0.0, 0.0);
-        self.titleLabel.shadowOffset = CGSizeMake(0.0, 0.0);
-        favoriteBannerLabel.shadowOffset = CGSizeMake(0.0, 0.0);
-    }
+    self.dateTimeLabel.shadowOffset = CGSizeMake(0.0, 0.0);
+    self.titleLabel.shadowOffset = CGSizeMake(0.0, 0.0);
+    favoriteBannerLabel.shadowOffset = CGSizeMake(0.0, 0.0);
+    [[self view] bringSubviewToFront:favoriteBannerLabel];
     descriptionTextView.tintColor = kCOLOR_HACKERSPACE;
 }
 
@@ -78,7 +75,8 @@
     NSString *dateTimeString = [NSString stringWithFormat:@"%@\n%@ bis %@ Uhr", dateString, [df stringFromDate:eventToDisplay.StartDate], [df stringFromDate:eventToDisplay.EndDate]];
     dateTimeLabel.text = dateTimeString;
     
-    [df release], df = nil;
+    [df release];
+    df = nil;
     titleLabel.text = eventToDisplay.Title;
     NSMutableString *descriptionText = [NSMutableString string];
     if( eventToDisplay.Description ) {
@@ -121,11 +119,22 @@
     favoriteBannerLabel.center = CGPointMake( self.view.bounds.size.width-50, self.view.bounds.size.height-25.0);
 }
 
+- (void) updateFavoriteLabel {
+    [UIView animateWithDuration:0.3 animations:^{
+        BOOL isInCalendarOrFavorite = NO;
+        if( eventToDisplay.isMarkedAsFavorite ) {
+            isInCalendarOrFavorite = YES;
+        }
+        if( [self hasEventInCalendar] ) {
+            isInCalendarOrFavorite = YES;
+        }
+        favoriteBannerLabel.alpha = isInCalendarOrFavorite ? 1.0 : 0.0;
+    }];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [UIView animateWithDuration:0.3 animations:^{
-        favoriteBannerLabel.alpha = eventToDisplay.isMarkedAsFavorite ? 1.0 : 0.0;
-    }];
+    [self updateFavoriteLabel];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationEventKit:) name:kNOTIFICATION_ALERT_ALREADY_PRESENT object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationEventKit:) name:kNOTIFICATION_ALERT_SOME_ERROR object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationEventKit:) name:kNOTIFICATION_ALERT_SUCCESS object:nil];
@@ -379,13 +388,16 @@
                     if( DEBUG ) NSLog( @"ERROR PUSHING EVENT TO CALENDAR: %@", error );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_SOME_ERROR object:error];
+                        [self updateFavoriteLabel];
                     });
                 }
                 else {
                     if( DEBUG ) NSLog( @"EVENT PUSHED TO CALENDAR: %@", eventToDisplay.Title );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_SUCCESS object:error];
+                        [self updateFavoriteLabel];
                     });
+
                 }
             }
         }
@@ -430,12 +442,14 @@
                     if( DEBUG ) NSLog( @"ERROR DELETING EVENT FROM CALENDAR: %@", error );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_SOME_ERROR object:error];
+                        [self updateFavoriteLabel];
                     });
                 }
                 else {
                     if( DEBUG ) NSLog( @"EVENT REMOVED FROM CALENDAR: %@", eventToDisplay.Title );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_DELETED object:error];
+                        [self updateFavoriteLabel];
                     });
                 }
             }
@@ -453,6 +467,7 @@
             });
         }
     }];
+    [self updateFavoriteLabel];
 }
 
 - (IBAction)actionShare {

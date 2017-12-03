@@ -99,6 +99,8 @@
 		8FADE5AA17E4F64A00C2962E /* HSBError.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FADE5A917E4F64A00C2962E /* HSBError.m */; };
 		8FADE5B217E4FA7400C2962E /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FADE5B017E4FA7400C2962E /* SettingsViewController.m */; };
 		8FADE5B317E4FA7400C2962E /* SettingsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8FADE5B117E4FA7400C2962E /* SettingsViewController.xib */; };
+		8FF12ECF1FD4332000BB2A10 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8FF12ECE1FD4332000BB2A10 /* Launch Screen.storyboard */; };
+		8FF12ED11FD433F700BB2A10 /* Icon_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = 8FF12ED01FD433F700BB2A10 /* Icon_1024.png */; };
 		8FF98BFA17E0D12200AEA544 /* SilverDesignView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FF98BF917E0D12200AEA544 /* SilverDesignView.m */; };
 		8FF98C0B17E0D9EE00AEA544 /* MOOCGImageWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FF98C0417E0D9EE00AEA544 /* MOOCGImageWrapper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		8FF98C0C17E0D9EE00AEA544 /* MOOMaskedIconView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FF98C0617E0D9EE00AEA544 /* MOOMaskedIconView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -264,6 +266,9 @@
 		8FADE5AF17E4FA7400C2962E /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		8FADE5B017E4FA7400C2962E /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		8FADE5B117E4FA7400C2962E /* SettingsViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SettingsViewController.xib; sourceTree = "<group>"; };
+		8FF12ECE1FD4332000BB2A10 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		8FF12ED01FD433F700BB2A10 /* Icon_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon_1024.png; sourceTree = SOURCE_ROOT; };
+		8FF12ED21FD43B2000BB2A10 /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
 		8FF98BF817E0D12200AEA544 /* SilverDesignView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SilverDesignView.h; sourceTree = "<group>"; };
 		8FF98BF917E0D12200AEA544 /* SilverDesignView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SilverDesignView.m; sourceTree = "<group>"; };
 		8FF98C0217E0D9EE00AEA544 /* AHHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHHelper.h; sourceTree = "<group>"; };
@@ -404,6 +409,7 @@
 		8F46846317DE19EB00D2137D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8FF12ED21FD43B2000BB2A10 /* LocalAuthentication.framework */,
 				8FFE083117E2A6FF00B53224 /* libicucore.dylib */,
 				8FA5D28C1951EC9500237548 /* CoreImage.framework */,
 				8F880F2117E1BB6A00E13B6D /* QuartzCore.framework */,
@@ -431,6 +437,7 @@
 				8FF98BF917E0D12200AEA544 /* SilverDesignView.m */,
 				8FFE084117E3722B00B53224 /* DecayAnimation.h */,
 				8FFE084217E3722B00B53224 /* DecayAnimation.m */,
+				8FF12ECD1FD4330D00BB2A10 /* Launch */,
 				8FFE080317E22F7700B53224 /* Event Calendar */,
 				8FADE5B417E4FA8100C2962E /* Settings */,
 				8FFE080217E22F6D00B53224 /* Event Details */,
@@ -443,6 +450,7 @@
 		8F46846B17DE19EB00D2137D /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				8FA9C06C1B4D5F7C004C103B /* Images.xcassets */,
 				8FFE083517E320FC00B53224 /* InfoPlist.strings */,
 				8F4684A417DE1B5700D2137D /* images */,
 			);
@@ -478,7 +486,7 @@
 		8F4684A417DE1B5700D2137D /* images */ = {
 			isa = PBXGroup;
 			children = (
-				8FA9C06C1B4D5F7C004C103B /* Images.xcassets */,
+				8FF12ED01FD433F700BB2A10 /* Icon_1024.png */,
 				8F917B8A1DE303A000AACE9F /* icon_back_elegant.png */,
 				8F917B8B1DE303A000AACE9F /* icon_back_elegant@2x.png */,
 				8F917B8C1DE303A000AACE9F /* icon_back_elegant@3x.png */,
@@ -640,6 +648,14 @@
 			name = Settings;
 			sourceTree = "<group>";
 		};
+		8FF12ECD1FD4330D00BB2A10 /* Launch */ = {
+			isa = PBXGroup;
+			children = (
+				8FF12ECE1FD4332000BB2A10 /* Launch Screen.storyboard */,
+			);
+			name = Launch;
+			sourceTree = "<group>";
+		};
 		8FF98C0117E0D9EE00AEA544 /* MOOMaskedIconView */ = {
 			isa = PBXGroup;
 			children = (
@@ -732,12 +748,12 @@
 		8F46845917DE19EB00D2137D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = appdoctors;
 				TargetAttributes = {
 					8F46846017DE19EB00D2137D = {
-						DevelopmentTeam = 87X5825Q8W;
-						ProvisioningStyle = Manual;
+						DevelopmentTeam = 3E2F77GV8B;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -781,6 +797,7 @@
 				8FA9C0811B4D6532004C103B /* icon_browser@3x.png in Resources */,
 				8F832366194F192C006904BE /* icon_browser@2x.png in Resources */,
 				8FA9C0851B4D666E004C103B /* sign_red@3x.png in Resources */,
+				8FF12ECF1FD4332000BB2A10 /* Launch Screen.storyboard in Resources */,
 				8FA9C07D1B4D63BF004C103B /* icon_favstar_filled@3x.png in Resources */,
 				8FA5D2881951BAE000237548 /* info.png in Resources */,
 				8F7904F81DE21B46007617A7 /* icon_wheel@3x.png in Resources */,
@@ -791,6 +808,7 @@
 				8FFE082417E2643900B53224 /* arrow_right@2x.png in Resources */,
 				8F7904F71DE21B46007617A7 /* icon_wheel@2x.png in Resources */,
 				8FA5D2851951BAE000237548 /* checkMark@2x.png in Resources */,
+				8FF12ED11FD433F700BB2A10 /* Icon_1024.png in Resources */,
 				8FFE082917E27B9300B53224 /* icon_favstar_filled.png in Resources */,
 				8FFE082A17E27B9300B53224 /* icon_favstar_filled@2x.png in Resources */,
 				8FFE082B17E27B9300B53224 /* icon_favstar_framed.png in Resources */,
@@ -893,13 +911,19 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -937,13 +961,19 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -973,11 +1003,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 87X5825Q8W;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3E2F77GV8B;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -989,8 +1019,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.noxymo.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "5733059b-9836-40a7-9790-c65912672bf3";
-				PROVISIONING_PROFILE_SPECIFIER = "hshb Development 2017";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
@@ -1000,11 +1030,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				DEVELOPMENT_TEAM = 87X5825Q8W;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3E2F77GV8B;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -1016,9 +1046,9 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.noxymo.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "e81f37a1-8e4c-49be-8356-d1944ec3e530";
+				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "hshb Distribution 2017";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};

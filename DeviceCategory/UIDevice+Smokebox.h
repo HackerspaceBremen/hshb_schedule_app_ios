@@ -14,6 +14,7 @@ typedef enum { // SCREEN DIMENSIONS IN INCHES
     UIDeviceType40, // (iPhone 5)
     UIDeviceType47, // (iPhone 6)
     UIDeviceType55, // (iPhone 6plus)
+    UIDeviceType58, // (iPhone X)
     UIDeviceType79, // (all Mini iPads)
     UIDeviceType97, // (all normal & Air iPads)
     UIDeviceType129, // (iPad Pro)
@@ -28,6 +29,7 @@ typedef enum { // SCREEN DIMENSIONS IN INCHES
 + (BOOL) isFon5;
 + (BOOL) isFon6;
 + (BOOL) isFon6plus;
++ (BOOL) isFonX;
 + (BOOL) isPad;
 + (BOOL) isPadPro;
 + (BOOL) isPod;
@@ -35,6 +37,9 @@ typedef enum { // SCREEN DIMENSIONS IN INCHES
 + (BOOL) isRetina;
 + (UIDeviceType) deviceType;
 + (NSString*) deviceTypeString;
+
++ (UIBarButtonItem*) barButtonItemWithImageName:(NSString*)imageName target:(id)target action:(SEL)selector label:(NSString*)accessibilityLabel hint:(NSString*)accessibilityHint;
++ (UIImage*) circleImageWithColor:(UIColor*)colorTop andColor:(UIColor*)colorBottom;
 
 - (NSString*) platform;
 - (NSString*) platformString;
@@ -60,3 +65,4 @@ typedef enum { // SCREEN DIMENSIONS IN INCHES
 - (BOOL) isFon5;
 
 @end
+

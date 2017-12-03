@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <LocalAuthentication/LocalAuthentication.h>
 #import "AMSmoothAlertView.h"
 #import "AMSmoothAlertConstants.h"
 

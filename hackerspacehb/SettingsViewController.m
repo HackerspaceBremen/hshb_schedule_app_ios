@@ -66,10 +66,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.navigationItem.title = @"Zugangsdaten";
-    if( [[UIDevice currentDevice] isOS_7] ) {
-        self.extendedLayoutIncludesOpaqueBars = NO;
-        self.edgesForExtendedLayout = UIRectEdgeNone;
-    }
+    self.extendedLayoutIncludesOpaqueBars = NO;
+    self.edgesForExtendedLayout = UIRectEdgeNone;
     self.spaceMessageControl.tintColor = [UIColor whiteColor];
 
     // LOAD MESSAGES
@@ -152,10 +150,151 @@
     [self.navigationController setToolbarHidden:YES animated:YES];
 }
 
+- (void) togglePassword {
+    pwdTextField.secureTextEntry = !pwdTextField.secureTextEntry;
+    pwdLabel.textColor = pwdTextField.secureTextEntry ? [UIColor whiteColor] : [UIColor redColor];
+    if( pwdTextField.secureTextEntry ) {
+        [self stopFlashing];
+    }
+    else {
+        [self startFlashing];
+    }
+}
+
+- (void) addFlashingAnimationToView:(UIView*)viewToFlash duration:(NSTimeInterval)duration toValue:(CGFloat)toValue afterDelay:(NSTimeInterval)delay {
+    [viewToFlash.layer removeAllAnimations];
+    if( duration == 0.0 ) {
+        return;
+    }
+    viewToFlash.layer.opacity = 1.0;
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    animation.duration = duration;
+    animation.repeatCount = HUGE_VALF;
+    animation.autoreverses = YES;
+    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    animation.fromValue = [NSNumber numberWithFloat:1.0];
+    animation.toValue = [NSNumber numberWithFloat:toValue];
+    animation.fillMode = kCAFillModeForwards;
+    animation.removedOnCompletion = NO;
+    animation.beginTime = delay; // ATTN: THIS IS OF UTMOST IMPORTANCE TO AVOID FLASHING AFTER THE TABLEVIEW APPEARS
+    [viewToFlash.layer addAnimation:animation forKey:@"animateOpacity"];
+}
+
+- (void) startFlashing {
+    [self addFlashingAnimationToView:pwdLabel duration:1.0 toValue:0.2 afterDelay:0.2];
+}
+
+- (void) stopFlashing {
+    [pwdLabel.layer removeAllAnimations];
+}
+
 #pragma mark - user actions -
 
-- (IBAction) actionPasswordToggle:(id)sender{
-    pwdTextField.secureTextEntry = !pwdTextField.secureTextEntry;
+- (IBAction) actionPasswordToggle:(id)sender {
+    if( pwdTextField.secureTextEntry == false ) {
+        [self togglePassword];
+        return;
+    }
+    LAContext *myContext = [[LAContext alloc] init];
+    NSString *supportedBiometry = @"Authentifizierungsmethode";
+    if (@available(iOS 11.0, *)) {
+        LABiometryType availableBiometryType = myContext.biometryType;
+        switch( availableBiometryType ) {
+            case LABiometryNone:
+                supportedBiometry = @"Passwort";
+                break;
+                
+            case LABiometryTypeTouchID:
+                supportedBiometry = @"Touch ID";
+                break;
+                
+            case LABiometryTypeFaceID:
+                supportedBiometry = @"Face ID";
+                break;
+                
+            default:
+                supportedBiometry = @"Authentifizierungsmethode";
+                break;
+        }
+    } else {
+        // Fallback on earlier versions
+    }
+    NSString *myLocalizedReasonString = [NSString stringWithFormat:@"Wir benötigen eine Authentifizierung per %@ um dir Zugriff zu deinen Zugangsdaten zu geben.", supportedBiometry];
+    /*
+    
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Biometrie"
+                                                                   message:[NSString stringWithFormat:@"Wir werden dich jetzt authentifizieren mittels '%@'.", supportedBiometry]
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"Authentifizieren..." style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                              
+                                                              [self initBiometricAuthWithContext:myContext andReason:myLocalizedReasonString];
+                                                              
+                                                          }];
+    
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:nil];
+     */
+    // START AUTH
+    [self initBiometricAuthWithContext:myContext andReason:myLocalizedReasonString];
+}
+
+- (void) initBiometricAuthWithContext:(LAContext*)myContext andReason:(NSString*)myLocalizedReasonString {
+    
+    NSError *authError = nil;
+    
+    LAPolicy preferredPolicy = LAPolicyDeviceOwnerAuthentication; // LAPolicyDeviceOwnerAuthenticationWithBiometrics, LAPolicyDeviceOwnerAuthentication
+    
+    if ([myContext canEvaluatePolicy:preferredPolicy error:&authError]) {
+        [myContext evaluatePolicy:preferredPolicy
+                  localizedReason:myLocalizedReasonString
+                            reply:^(BOOL success, NSError *error) {
+                                if (success) {
+                                    // User authenticated successfully, take appropriate action
+                                    /*
+                                    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Zugangsdaten"
+                                                                                                   message:@"Dein Passwort wird in Klartext freigegeben zur Einsicht für dich."
+                                                                                            preferredStyle:UIAlertControllerStyleAlert];
+                                    
+                                    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                                          handler:^(UIAlertAction * action) {
+                                                                                          }];
+                                    
+                                    [alert addAction:defaultAction];
+                                    [self presentViewController:alert animated:YES completion:nil];
+                                     */
+                                    dispatch_async( dispatch_get_main_queue() , ^{
+                                        [self togglePassword];
+                                    });
+                                    
+                                }
+                                else {
+                                    // User did not authenticate successfully, look at error and take appropriate action
+                                    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Zugangsdaten"
+                                                                                                   message:@"Zugang verweigert, um dein Passwort einsehen zu können musst du dich erfolgreich authentifizieren."
+                                                                                            preferredStyle:UIAlertControllerStyleAlert];
+                                    
+                                    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                                          handler:^(UIAlertAction * action) {}];
+                                    
+                                    [alert addAction:defaultAction];
+                                    [self presentViewController:alert animated:YES completion:nil];
+                                }
+                            }];
+    }
+    else {
+        // Could not evaluate policy; look at authError and present an appropriate message to user
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Authentifizierungsfehler"
+                                                                       message:[NSString stringWithFormat:@"Could not evaluate authentication policy.\nAUTHERROR:\n%@", authError]
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * action) {}];
+        
+        [alert addAction:defaultAction];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
 }
 
 - (IBAction) actionChangeActiveMessage:(UISegmentedControl*)control {

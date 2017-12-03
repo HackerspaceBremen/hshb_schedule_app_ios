@@ -57,8 +57,7 @@
     return self;
 }
 
-- (void)start
-{
+- (void)start {
     if (self.isCancelled) {
         [self markAsFinished];
         return;
@@ -68,15 +67,17 @@
     _executing = YES;
     [self didChangeValueForKey:@"isExecuting"];
 
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+    });
     [self loadEventsWithPageToken:nil];
 }
 
-- (void)markAsFinished
-{
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
-
+- (void)markAsFinished {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    });
+    
     [self willChangeValueForKey:@"isFinished"];
     [self willChangeValueForKey:@"isExecuting"];
     _executing = NO;

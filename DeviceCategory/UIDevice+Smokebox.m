@@ -20,10 +20,10 @@
 }
 
 - (double) availableMemory {
-    vm_statistics_data_t	vmStats;
-    mach_msg_type_number_t	infoCount = HOST_VM_INFO_COUNT;
-    mach_port_t				machHost = mach_host_self();
-    kern_return_t			kernReturn = host_statistics(machHost, HOST_VM_INFO, (host_info_t)&vmStats, &infoCount);
+    vm_statistics_data_t    vmStats;
+    mach_msg_type_number_t    infoCount = HOST_VM_INFO_COUNT;
+    mach_port_t                machHost = mach_host_self();
+    kern_return_t            kernReturn = host_statistics(machHost, HOST_VM_INFO, (host_info_t)&vmStats, &infoCount);
     
     if(KERN_SUCCESS != kernReturn) {
         return NSNotFound;
@@ -89,6 +89,18 @@
     [platformDict setValue:@"iPhone 7"                  forKey:@"iPhone9,3"];
     [platformDict setValue:@"iPhone 7 Plus"             forKey:@"iPhone9,2"];
     [platformDict setValue:@"iPhone 7 Plus"             forKey:@"iPhone9,4"];
+    
+    [platformDict setValue:@"iPhone 7"                  forKey:@"iPhone9,1"];
+    [platformDict setValue:@"iPhone 7"                  forKey:@"iPhone9,3"];
+    [platformDict setValue:@"iPhone 7 Plus"             forKey:@"iPhone9,2"];
+    [platformDict setValue:@"iPhone 7 Plus"             forKey:@"iPhone9,4"];
+    
+    [platformDict setValue:@"iPhone 8"                  forKey:@"iPhone10,1"];
+    [platformDict setValue:@"iPhone 8"                  forKey:@"iPhone10,4"];
+    [platformDict setValue:@"iPhone 8 Plus"             forKey:@"iPhone10,2"];
+    [platformDict setValue:@"iPhone 8 Plus"             forKey:@"iPhone10,5"];
+    [platformDict setValue:@"iPhone X"                  forKey:@"iPhone10,3"];
+    [platformDict setValue:@"iPhone X"                  forKey:@"iPhone10,6"];
     
     [platformDict setValue:@"iPod Touch 1G"             forKey:@"iPod1,1"];
     [platformDict setValue:@"iPod Touch 2G"             forKey:@"iPod2,1"];
@@ -198,6 +210,10 @@
     return [[UIDevice currentDevice] isFon6plus];
 }
 
++ (BOOL) isFonX {
+    return [[UIDevice currentDevice] isFonX];
+}
+
 + (BOOL) isRetina {
     return [[UIDevice currentDevice] isRetina];
 }
@@ -265,11 +281,11 @@
 }
 
 - (BOOL) isOS_12 {
-    return ( [self versionAsInteger] >= 11 );
+    return ( [self versionAsInteger] >= 12 );
 }
 
 - (BOOL) isOS_13 {
-    return ( [self versionAsInteger] >= 11 );
+    return ( [self versionAsInteger] >= 13 );
 }
 
 - (BOOL) isRetina {
@@ -291,6 +307,9 @@
     }
     else if( minSize == 414.0f && maxSize == 736.0f ) { // iPhone 6 plus, iPhone 6 plus plus, iPhone 6 hyper retina
         return UIDeviceType55;
+    }
+    else if( minSize == 375.0f && maxSize == 812.0f ) { // iPhone X
+        return UIDeviceType58;
     }
     else if( minSize == 768.0f && maxSize == 1024.0 ) {
         NSString *platformString =  [[[UIDevice currentDevice] platform] lowercaseString];
@@ -341,6 +360,9 @@
         case UIDeviceType55:
             deviceTypeName = @"iPhone 5.5 INCH";
             break;
+        case UIDeviceType58:
+            deviceTypeName = @"iPhone 5.8 INCH";
+            break;
         case UIDeviceType79:
             deviceTypeName = @"iPad 7.9 INCH";
             break;
@@ -372,6 +394,10 @@
     return [UIDevice deviceType] == UIDeviceType47;
 }
 
+- (BOOL) isFonX {
+    return [UIDevice deviceType] == UIDeviceType58;
+}
+
 - (BOOL) isFon6plus {
     return [UIDevice deviceType] == UIDeviceType55;
 }
@@ -386,4 +412,84 @@
     return randomFloat;
 }
 
++ (UIBarButtonItem*) barButtonItemWithImageName:(NSString*)imageName target:(id)target action:(SEL)selector label:(NSString*)accessibilityLabel hint:(NSString*)accessibilityHint {
+    return [UIDevice barButtonItemWithImageName:(NSString*)imageName target:(id)target action:(SEL)selector label:(NSString*)accessibilityLabel hint:(NSString*)accessibilityHint buttonRef:NULL];
+}
+
++ (UIImage*) circleImageWithColor:(UIColor*)colorTop andColor:(UIColor*)colorBottom {
+    if( !colorBottom ) {
+        colorBottom = [colorTop colorByLighteningTo:0.3];
+        colorTop = [colorTop colorByDarkeningTo:0.9];
+    }
+    BOOL isRetina = [[UIDevice currentDevice] isRetina];
+    CGFloat edgeLength = isRetina ? 40.0 : 20.0;
+    CGSize circleSize = CGSizeMake(edgeLength, edgeLength);
+    CGRect circleArea = CGRectMake(0.0, 0.0, edgeLength, edgeLength);
+    UIImage *circleImage = nil;
+    UIGraphicsBeginImageContext( circleSize );
+    CGContextRef c = UIGraphicsGetCurrentContext();
+    CGContextClearRect( c, circleArea );
+    CGContextSetFillColorWithColor(c, colorTop.CGColor );
+    
+    CGColorSpaceRef rgb = CGColorSpaceCreateDeviceRGB();
+    CGPoint start, end;
+    start = CGPointMake( floor(circleSize.width/2.0f), 0.0 );
+    end = CGPointMake( floor(circleSize.width/2.0f), circleSize.height );
+    /*
+     CGFloat locations[2];
+     locations[0] = 0.0;
+     locations[1] = 1.0;
+     */
+    
+    UIColor *uicolor1,*uicolor2;
+    uicolor1 = colorTop;
+    uicolor2 = colorBottom;
+    
+    const CGFloat* componentsColor1 = CGColorGetComponents( uicolor1.CGColor );
+    int numOfColors1 = (int)CGColorGetNumberOfComponents( uicolor1.CGColor );
+    const CGFloat* componentsColor2 = CGColorGetComponents( uicolor2.CGColor );
+    int numOfColors2 = (int)CGColorGetNumberOfComponents( uicolor2.CGColor );
+    
+    // FIX BUG ON < IOS4
+    CGColorRef color1,color2;
+    if( numOfColors1 == 2 ) { // monochrome color
+        color1 = [UIColor colorWithRed:componentsColor1[0] green:componentsColor1[0] blue:componentsColor1[0] alpha:componentsColor1[1]].CGColor;
+    }
+    else {
+        color1 = [UIColor colorWithRed:componentsColor1[0] green:componentsColor1[1] blue:componentsColor1[2] alpha:componentsColor1[3]].CGColor;
+    }
+    if( numOfColors2 == 2 ) { // monochrome color
+        color2 = [UIColor colorWithRed:componentsColor2[0] green:componentsColor2[0] blue:componentsColor2[0] alpha:componentsColor2[1]].CGColor;
+    }
+    else {
+        color2 = [UIColor colorWithRed:componentsColor2[0] green:componentsColor2[1] blue:componentsColor2[2] alpha:componentsColor2[3]].CGColor;
+    }
+    
+    NSArray *colors = [NSArray arrayWithObjects:(id)color1,(id)color2, nil];
+    CGGradientRef gradient = CGGradientCreateWithColors(rgb, (CFArrayRef)colors, NULL );
+    CGColorSpaceRelease(rgb);
+    
+    if( NO ) {
+        CGPoint circleCenterStart = CGPointMake(circleArea.size.width/2.0, circleArea.size.height/2.0);
+        CGPoint circleCenterEnd = CGPointMake(circleArea.size.width/2.0, circleArea.size.height/2.0);
+        CGContextDrawRadialGradient(c, gradient, circleCenterStart, 0.5, circleCenterEnd, 1.0, kCGGradientDrawsAfterEndLocation);
+    }
+    // ADD CLIPPING CIRCLE
+    CGPathRef clippath = [UIBezierPath bezierPathWithRoundedRect:circleArea cornerRadius:circleSize.width/2.0].CGPath;
+    CGContextAddPath( c, clippath );
+    CGContextClip( c );
+    
+    CGContextDrawLinearGradient(c, gradient, start, end, kCGGradientDrawsBeforeStartLocation|kCGGradientDrawsAfterEndLocation);
+    CGGradientRelease(gradient);
+    
+    circleImage = UIGraphicsGetImageFromCurrentImageContext();
+    if( isRetina ) {
+        circleImage = [UIImage imageWithCGImage:circleImage.CGImage scale:2 orientation:circleImage.imageOrientation];
+    }
+    UIGraphicsEndImageContext();
+    return circleImage;
+}
+
+
 @end
+
