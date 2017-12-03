@@ -5,9 +5,9 @@ Hackerspace Bremen App (iOS)
 Eine App für mobile iOS Geräte, die über das **aktuelle Programm im Hackerspace Bremen** informiert.
 
 ## Screenshot
-Der Screenshot [in voller Größe](http://www.noxymo.com/filespublic/hshb_app_screen_full.png) und hier in klein...
+Der Screenshot [in voller Größe](http://www.noxymo.com/filespublic/hshb_iphone_x.png) und hier in klein...
 
-![image](http://www.noxymo.com/filespublic/hshb_app_screen_small.png)
+![image](http://www.noxymo.com/filespublic/hshb_iphone_x_small)
 
 ## Download
 Die App ist im **AppStore** verfügbar und kann dort kostenlos [heruntergeladen](https://itunes.apple.com/us/app/hackerspace-bremen/id707128929?mt=8) werden zur Installation.
@@ -32,6 +32,7 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Versionen
 
+* Version 2.3 (??.12.2017)
 * Version 2.2 (27.5.2017)
 * Version 2.1 (6.2.2017)
 * Version 2.0 (23.11.2016)
