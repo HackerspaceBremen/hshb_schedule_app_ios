@@ -53,6 +53,7 @@
 #define kUSER_DEFAULTS_BOOL_HAS_SUBMITTED_PUSH_TOKEN        @"boolhasSubmittedPushToken"
 #define kUSER_DEFAULTS_SPACE_MESSAGES                       @"dictionarySpaceMessages"
 #define kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE                 @"integerSpaceMessageActiveIndex"
+#define kUSER_DEFAULTS_REMINDER_TIME_ACTIVE                 @"integerReminderTimeActiveIndex"
 
 // NSCoding strings
 #define kNSCODER_FILENAME_PREFIX @"STORED"

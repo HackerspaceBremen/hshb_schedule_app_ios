@@ -13,12 +13,6 @@
 #import "FDKeychain.h"
 #import "RootViewController.h"
 
-typedef enum {
-    RemoteNotificationsAllowedNone = 0,
-    RemoteNotificationsAllowedPartial = 1,
-    RemoteNotificationsAllowedFull = 2,
-} RemoteNotificationsAllowed;
-
 @interface AppDelegate : UIResponder <UIApplicationDelegate> {
     
     NSMutableDictionary *storedFavoriteEvents;
@@ -30,6 +24,7 @@ typedef enum {
     BOOL wasInstall;
     BOOL wasUpdate;
     NSDate *dateOnBecomeActive;
+    id mainController;
 }
 
 @property( nonatomic ) BOOL hasRefreshedDataAfterStartup;
@@ -43,6 +38,7 @@ typedef enum {
 @property( strong, nonatomic ) RootViewController *rootNavController;
 @property( strong, nonatomic ) HSBStatus *hackerspaceBremenStatus;
 @property( strong, nonatomic ) NSDate *dateOnBecomeActive;
+@property( strong, nonatomic ) id mainController;
 
 - (NSInteger) numberOfLaunches;
 - (void) addToFavoritesEvent:(GoogleCalendarEvent*)event;
@@ -50,6 +46,7 @@ typedef enum {
 - (void) tokenStore:(NSString*)token withKey:(NSString*)key;
 - (NSString*) tokenStoredWithKey:(NSString*)key;
 - (void) enableNotifications;
+- (void) rescheduleAllFavorites;
 
 - (IBAction) actionScheduleTestNotification;
 

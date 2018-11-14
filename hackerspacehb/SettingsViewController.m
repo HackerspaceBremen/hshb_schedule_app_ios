@@ -24,6 +24,7 @@
 @synthesize isEditingTextView;
 @synthesize spaceMessages;
 @synthesize spaceMessageControl;
+@synthesize reminderTimeControl;
 
 - (void) dealloc {
     self.uidTextField = nil;
@@ -36,6 +37,7 @@
     self.infoLabel = nil;
     self.spaceMessages = nil;
     self.spaceMessageControl = nil;
+    self.reminderTimeControl = nil;
     [super dealloc];
 }
 
@@ -112,6 +114,7 @@
     self.extendedLayoutIncludesOpaqueBars = NO;
     self.edgesForExtendedLayout = UIRectEdgeNone;
     self.spaceMessageControl.tintColor = [UIColor whiteColor];
+    self.reminderTimeControl.tintColor = [UIColor whiteColor];
 
     // LOAD MESSAGES
     NSDictionary *storedMessages = [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_SPACE_MESSAGES];
@@ -137,6 +140,18 @@
         [[NSUserDefaults standardUserDefaults] setInteger:activeMessageIndex forKey:kUSER_DEFAULTS_SPACE_MESSAGE_ACTIVE];
         [[NSUserDefaults standardUserDefaults] synchronize];
     }
+
+    NSUInteger reminderTimeIndex = 0;
+    if( [[NSUserDefaults standardUserDefaults] objectForKey:kUSER_DEFAULTS_REMINDER_TIME_ACTIVE] ) {
+        reminderTimeIndex = [[NSUserDefaults standardUserDefaults] integerForKey:kUSER_DEFAULTS_REMINDER_TIME_ACTIVE];
+        [reminderTimeControl setSelectedSegmentIndex:reminderTimeIndex];
+    }
+    else {
+        [[NSUserDefaults standardUserDefaults] setInteger:reminderTimeIndex forKey:kUSER_DEFAULTS_REMINDER_TIME_ACTIVE];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+
+    
     
     versionLabel.text = [HSBApplication versionStringVerbose];
 
@@ -292,6 +307,14 @@
         [alert addAction:defaultAction];
         [self presentViewController:alert animated:YES completion:nil];
     }
+}
+
+
+- (IBAction) actionChangeReminderTime:(UISegmentedControl*)control {
+    NSUInteger reminderTimeIndex = control.selectedSegmentIndex;
+    [[NSUserDefaults standardUserDefaults] setInteger:reminderTimeIndex forKey:kUSER_DEFAULTS_REMINDER_TIME_ACTIVE];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [[self appDelegate] rescheduleAllFavorites];
 }
 
 - (IBAction) actionChangeActiveMessage:(UISegmentedControl*)control {

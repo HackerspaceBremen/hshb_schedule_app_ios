@@ -20,6 +20,7 @@
     IBOutlet UILabel *msgLabel;
     IBOutlet UILabel *infoLabel;
     IBOutlet UISegmentedControl *spaceMessageControl;
+    IBOutlet UISegmentedControl *reminderTimeControl;
     BOOL isEditingTextView;
     NSMutableDictionary *spaceMessages;
     
@@ -35,6 +36,7 @@
 @property( nonatomic, retain ) UILabel *msgLabel;
 @property( nonatomic, retain ) UILabel *infoLabel;
 @property( nonatomic, retain ) UISegmentedControl *spaceMessageControl;
+@property( nonatomic, retain ) UISegmentedControl *reminderTimeControl;
 @property( nonatomic, retain ) NSMutableDictionary *spaceMessages;
 @property( nonatomic, assign ) BOOL isEditingTextView;
 

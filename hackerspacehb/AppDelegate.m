@@ -25,6 +25,7 @@
 @synthesize wasInstall;
 @synthesize wasUpdate;
 @synthesize dateOnBecomeActive;
+@synthesize mainController;
 
 #pragma mark - destruction
 
@@ -36,6 +37,7 @@
     self.backgroundFetchStartDate = nil;
     self.backgroundFetchDoneDate = nil;
     self.dateOnBecomeActive = nil;
+    self.mainController = nil;
     [super dealloc];
 }
 
@@ -145,9 +147,139 @@
     }
 }
 
+- (NSTimeInterval) reminderPreWarningInterval {
+    NSInteger reminderIndex = [[NSUserDefaults standardUserDefaults] integerForKey:kUSER_DEFAULTS_REMINDER_TIME_ACTIVE];
+    if( reminderIndex == 0 ) {
+        return 0;
+    }
+    else {
+        switch( reminderIndex ) {
+            case 1:
+                return 15 * 60;
+                break;
+            case 2:
+                return 30 * 60;
+                break;
+            case 3:
+                return 60 * 60;
+                break;
+            case 4:
+                return 180 * 60;
+                break;
+
+            default:
+                return 0;
+                break;
+        }
+    }
+}
+
+- (GoogleCalendarEvent*) eventForUniqueId:(NSString*)uniqueId {
+    if( [[self.rootNavController.viewControllers firstObject] isKindOfClass:[CalendarViewController class]] ) {
+        NSMutableArray *events = [((CalendarViewController*)[self.rootNavController.viewControllers firstObject]) eventsInCalender];
+        for( GoogleCalendarEvent* currentEvent in events ) {
+            if( [currentEvent.uniqueId isEqualToString:uniqueId] ) {
+                return currentEvent;
+            }
+        }
+    }
+    else {
+        return nil;
+    }
+    return nil;
+}
+
+- (void) rescheduleAllFavorites {
+    for( NSString* currentUniqueId in [storedFavoriteEvents allKeys] ) {
+        GoogleCalendarEvent *currentEvent = [self eventForUniqueId:currentUniqueId];
+        [self rescheduleReminderForEvent:currentEvent];
+    }
+}
+
+- (void) rescheduleReminderForEvent:(GoogleCalendarEvent*)event {
+    if( !event ) return;
+    [self unscheduleReminderForEvent:event];
+    [self scheduleReminderForEvent:event];
+}
+
+- (NSString*) reminderBodyTextForEvent:(GoogleCalendarEvent*)event {
+    if( !event ) return nil;
+    
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    NSLocale *locale = [NSLocale currentLocale];
+    [df setLocale:locale];
+    [df setDateStyle:NSDateFormatterMediumStyle];
+    [df setDateFormat:@"H:mm"];
+    NSString *eventTimeString = [NSString stringWithFormat:@"Heute, %@ bis %@ Uhr", [df stringFromDate:event.StartDate], [df stringFromDate:event.EndDate]];
+    NSMutableString *bodyText = [NSMutableString string];
+    [bodyText appendString:eventTimeString];
+    if( event.Title ) {
+        [bodyText appendFormat:@"\n\n%@", event.Title];
+    }
+    if( event.Description ) {
+        [bodyText appendFormat:@"\n\n%@", event.Description];
+    }
+    [df release];
+    df = nil;
+    return [NSString stringWithString:bodyText];
+}
+
+- (void) scheduleReminderForEvent:(GoogleCalendarEvent*)event {
+    if( !event ) return;
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = @"Erinnerung";
+    NSString *bodyText = [self reminderBodyTextForEvent:event];
+    content.body =  bodyText ? bodyText : @"Deine favorisierte Veranstaltung findet in Kürze statt.";
+    content.sound = [UNNotificationSound defaultSound];
+    
+    NSDate *todayDate = [NSDate date];
+    NSDate *eventDate = event.StartDate;
+    if( !eventDate ) return;
+    
+    NSTimeInterval intervalOfEvent = [eventDate timeIntervalSinceDate:todayDate];
+    intervalOfEvent = intervalOfEvent - [self reminderPreWarningInterval];
+    if( [self reminderPreWarningInterval] == 0 ) {
+        LOG( @"EVENT: SCHEDULING ABORTED. REMINDERS ARE 'OFF'." );
+        return;
+    }
+    if( intervalOfEvent <= 0 ) {
+        LOG( @"EVENT: SCHEDULING IMPOSSIBLE. EVENT IS IN THE PAST." );
+        return;
+    }
+    // use for debugging
+    // intervalOfEvent = 10;
+    LOG( @"EVENT: %@ (%@) ——— SCHEDULED IN: %f SECONDS", event.Title, event.uniqueId, intervalOfEvent );
+    content.categoryIdentifier = @"SPACE_STATUS_REMINDER_CATEGORY";
+
+    // add attachment
+    /*
+    NSURL *imageUrlSign = [NSBundle URLForResource:@"sign_reminder_large" withExtension:@"png" subdirectory:nil inBundleWithURL:[[NSBundle mainBundle] bundleURL]];
+    NSError *error = nil;
+    UNNotificationAttachment *attachment1 = [UNNotificationAttachment attachmentWithIdentifier:@"sign" URL:imageUrlSign options:@{} error:&error];
+    content.attachments = @[attachment1];
+     */
+
+    content.userInfo = @{@"message":event.Title};
+    
+    UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:intervalOfEvent repeats:NO];
+    UNNotificationRequest *notificationRequest = [UNNotificationRequest requestWithIdentifier:event.uniqueId content:content trigger:trigger];
+
+    
+    [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:notificationRequest withCompletionHandler:^(NSError * _Nullable error) {
+        //
+    }];
+}
+
+- (void) unscheduleReminderForEvent:(GoogleCalendarEvent*)event {
+    if( !event ) return;
+    LOG( @"EVENT: %@ (%@) ——— UNSCHEDULED", event.Title, event.uniqueId);
+    [[UNUserNotificationCenter currentNotificationCenter] removePendingNotificationRequestsWithIdentifiers:@[event.uniqueId]];
+}
+
 - (void) addToFavoritesEvent:(GoogleCalendarEvent*)event {
     [storedFavoriteEvents setObject:event.Title forKey:event.uniqueId];
     [self eventFavoritesWrite];
+    [self scheduleReminderForEvent:event];
     [event markAsFavorite];
     LOG( @"ADDED EVENT: %@", event.Title );
 }
@@ -155,6 +287,7 @@
 - (void) removeFromFavoritesEvent:(GoogleCalendarEvent*)event {
     [storedFavoriteEvents removeObjectForKey:event.uniqueId];
     [self eventFavoritesWrite];
+    [self unscheduleReminderForEvent:event];
     [event unmarkAsFavorite];
     LOG( @"REMOVED EVENT: %@", event.Title );
 }
@@ -171,7 +304,7 @@
 - (IBAction) actionScheduleTestNotification {
     UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
     content.title = @"Lokale Nachricht";
-    content.body = @"Fick dich Apple!";
+    content.body = @"Irgendein Text der etwas mehr Bedeutung hat als die Headline.";
     content.sound = [UNNotificationSound defaultSound];
     
     UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:25 repeats:NO];
@@ -186,7 +319,7 @@
 
 - (void) enableBackgroundFetching {
         if( DEBUG_BACKGROUND ) NSLog( @"APPDELEGATE: ENABLING BACKGROUND FETCHING" );
-        NSTimeInterval backgroundFetchInterval = 10 * 60; // 30 Minutes
+        NSTimeInterval backgroundFetchInterval = 60 * 10; // 10 Minutes (in seconds) - do not fetch more often than every 10 minutes
         [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:backgroundFetchInterval];
 }
 
@@ -232,7 +365,8 @@
                 HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:(id<JTValidJSONResponse>)jsonObject mapping:[[HSBStatus class] objectMapping]];
                 if( DEBUG_BACKGROUND ) NSLog( @"BACKFETCH STATUS RECEIVED:\n%@\n", fetchedStatus );
                 BOOL statusOpenBefore = [[NSUserDefaults standardUserDefaults] boolForKey:kUSER_DEFAULTS_LAST_SPACE_STATUS];
-                // statusOpenBefore = YES;
+                // use following line to debug fetches
+                // statusOpenBefore = !statusOpenBefore;
                 if( completionHandler ) {
                     if( statusOpenBefore != [fetchedStatus.spaceIsOpen boolValue] ) {
                         if( DEBUG_BACKGROUND ) NSLog( @"BACKFETCH|STATUS WAS CHANGED: %@", statusOpenBefore ? @"OPEN -> CLOSED" : @"CLOSED -> OPEN" );
@@ -274,13 +408,15 @@
                         content.sound = [UNNotificationSound defaultSound];
                         NSString *currentStatus = isOpen ? @"OPEN" : @"CLOSED";
                         content.userInfo = @{@"status":currentStatus,@"message":message};
-                        content.categoryIdentifier = @"SPACE_STATUS_CATEGORY"; // for notification extension
+                        content.categoryIdentifier = isOpen ? @"SPACE_STATUS_OPEN_CATEGORY" : @"SPACE_STATUS_CLOSED_CATEGORY"; // for notification extension
                         
                         // add attachment
+                        /*
                         NSURL *imageUrlSign = [NSBundle URLForResource:isOpen ? @"sign_green_large" : @"sign_red_large" withExtension:@"png" subdirectory:nil inBundleWithURL:[[NSBundle mainBundle] bundleURL]];
                         NSError *error = nil;
                         UNNotificationAttachment *attachment1 = [UNNotificationAttachment attachmentWithIdentifier:@"sign" URL:imageUrlSign options:@{} error:&error];
                         content.attachments = @[attachment1];
+                         */
                         
                         // craft notification
                         NSString *notificationIdentifier = [NSString stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970]];
@@ -350,6 +486,7 @@
     self.window.tintColor = kCOLOR_HACKERSPACE;//[UIColor whiteColor];
 
     CalendarViewController *firstController = [[[CalendarViewController alloc] initWithNibName:@"CalendarViewController" bundle:nil] autorelease];
+    self.mainController = firstController;
     
     self.rootNavController = [[[RootViewController alloc] initWithRootViewController:firstController] autorelease];
     self.window.rootViewController = self.rootNavController;

@@ -11,8 +11,6 @@
 #import "CalendarViewController.h"
 #import "JTISO8601DateFormatter.h"
 #import "SilverDesignView.h"
-#import "MOOStyleTrait.h"
-#import "MOOMaskedIconView.h"
 #import "EventDetailViewController.h"
 #import "AppDelegate.h"
 #import "DecayAnimation.h"
@@ -1028,8 +1026,7 @@
 
 - (IBAction) actionFavoriteEvent:(UIButton*)favButton {
     self.selectedRow = favButton.tag;
-    UIView *favStarImageView = [favButton.subviews lastObject];
-    NSInteger section = favStarImageView.tag;
+    NSInteger section = favButton.imageView.tag;
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:selectedRow inSection:section];
     GoogleCalendarEvent *event = [self eventAtIndexPath:indexPath];
     if( [event isMarkedAsFavorite] ) {
@@ -1435,24 +1432,9 @@
             cell.detailTextLabel.text = descriptionString;
          }
         
-        // STYLE ICON
-        MOOStyleTrait *grayIconTrait = [MOOStyleTrait trait];
-        
-        grayIconTrait.gradientColors = [NSArray arrayWithObjects:
-                                        [UIColor colorWithHue:0.0f saturation:0.05f brightness:0.34f alpha:1.0f],
-                                        [UIColor colorWithHue:0.0f saturation:0.05f brightness:0.57f alpha:1.0f], nil];
-        grayIconTrait.shadowColor = [UIColor colorWithWhite:0.0f alpha:1.0f];
-        grayIconTrait.shadowOffset = CGSizeMake(0.0f, -1.0f);
-        
-        grayIconTrait.innerShadowColor = [UIColor colorWithWhite:1.0f alpha:0.6f];
-        grayIconTrait.innerShadowOffset = CGSizeMake(0.0f, -1.0f);
-
-        NSString *imageName = currentGoogleEvent.isMarkedAsFavorite ? @"icon_favstar_filled.png" : @"icon_favstar_framed.png";
-        MOOMaskedIconView *calendarIconView = [MOOMaskedIconView iconWithResourceNamed:imageName];
-        calendarIconView.color = currentGoogleEvent.isMarkedAsFavorite ? kCOLOR_HACKERSPACE : [UIColor lightGrayColor];
-        //[calendarIconView mixInTrait:grayIconTrait];
-        calendarIconView.userInteractionEnabled = NO;
-
+        NSString *imageName = currentGoogleEvent.isMarkedAsFavorite ? @"IconFavstarFilled" : @"IconFavstarFramed";
+        UIImage *starImage = [[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        UIColor *buttonTintColor = currentGoogleEvent.isMarkedAsFavorite ? kCOLOR_HACKERSPACE : [UIColor lightGrayColor];
         
         if( isToday || segmentedControlMenu.selectedSegmentIndex == 1 || segmentedControlMenu.selectedSegmentIndex == 2 ) {
             cell.accessoryView = nil;
@@ -1463,10 +1445,13 @@
             button.frame = CGRectMake(0.0, 0.0, 40, 40);
             button.showsTouchWhenHighlighted = YES;
             [button addTarget:self action:@selector(actionFavoriteEvent:) forControlEvents:UIControlEventTouchUpInside];
-            [button addSubview:calendarIconView];
-            calendarIconView.center = button.center;
-            calendarIconView.tag = [indexPath section];
+            [button setImage:starImage forState:UIControlStateNormal];
+            button.contentMode = UIViewContentModeCenter;
+            //button.imageEdgeInsets = UIEdgeInsetsMake(5, 5, 5, 5);
+            //button.contentEdgeInsets = UIEdgeInsetsMake(5, 5, 5, 5);
+            button.tintColor = buttonTintColor;
             button.tag = [indexPath row];
+            button.imageView.tag = [indexPath section];
             cell.accessoryView = button;
             cell.accessoryType = UITableViewCellAccessoryNone;
         }
