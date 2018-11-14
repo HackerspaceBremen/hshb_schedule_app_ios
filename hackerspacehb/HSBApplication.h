@@ -12,8 +12,10 @@
 
 
 }
++ (NSString*) versionStringVerbose;
++ (NSString*) versionStringShort;
 
-- (BOOL) openURL:(NSURL *)url;
-- (BOOL) openInSafariURL:(NSURL *)url;
+- (void) openURL:(NSURL *)url;
+- (void) openInSafariURL:(NSURL *)url;
 
 @end

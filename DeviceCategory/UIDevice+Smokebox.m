@@ -412,10 +412,6 @@
     return randomFloat;
 }
 
-+ (UIBarButtonItem*) barButtonItemWithImageName:(NSString*)imageName target:(id)target action:(SEL)selector label:(NSString*)accessibilityLabel hint:(NSString*)accessibilityHint {
-    return [UIDevice barButtonItemWithImageName:(NSString*)imageName target:(id)target action:(SEL)selector label:(NSString*)accessibilityLabel hint:(NSString*)accessibilityHint buttonRef:NULL];
-}
-
 + (UIImage*) circleImageWithColor:(UIColor*)colorTop andColor:(UIColor*)colorBottom {
     if( !colorBottom ) {
         colorBottom = [colorTop colorByLighteningTo:0.3];
@@ -469,7 +465,7 @@
     CGGradientRef gradient = CGGradientCreateWithColors(rgb, (CFArrayRef)colors, NULL );
     CGColorSpaceRelease(rgb);
     
-    if( NO ) {
+    if( /* DISABLES CODE */ (NO) ) {
         CGPoint circleCenterStart = CGPointMake(circleArea.size.width/2.0, circleArea.size.height/2.0);
         CGPoint circleCenterEnd = CGPointMake(circleArea.size.width/2.0, circleArea.size.height/2.0);
         CGContextDrawRadialGradient(c, gradient, circleCenterStart, 0.5, circleCenterEnd, 1.0, kCGGradientDrawsAfterEndLocation);

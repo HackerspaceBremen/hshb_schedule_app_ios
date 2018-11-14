@@ -249,7 +249,7 @@ typedef enum : NSUInteger {
         self.alpha = 0.0f;
     } completion:^(BOOL finished) {
         self.hidden = YES;
-        [_delegate dismissedPopLabel:self];
+        [self->_delegate dismissedPopLabel:self];
     }];
 }
 

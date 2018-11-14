@@ -8,6 +8,7 @@
 
 #import "SettingsViewController.h"
 #import "AppDelegate.h"
+#import "HSBApplication.h"
 
 @implementation SettingsViewController
 
@@ -57,10 +58,52 @@
     return (AppDelegate*)[UIApplication sharedApplication].delegate;
 }
 
+- (void) togglePassword {
+    pwdTextField.secureTextEntry = !pwdTextField.secureTextEntry;
+    pwdLabel.textColor = pwdTextField.secureTextEntry ? [UIColor whiteColor] : [UIColor redColor];
+    if( pwdTextField.secureTextEntry ) {
+        [self stopFlashing];
+    }
+    else {
+        [self startFlashing];
+    }
+}
+
+- (void) addFlashingAnimationToView:(UIView*)viewToFlash duration:(NSTimeInterval)duration toValue:(CGFloat)toValue afterDelay:(NSTimeInterval)delay {
+    [viewToFlash.layer removeAllAnimations];
+    if( duration == 0.0 ) {
+        return;
+    }
+    viewToFlash.layer.opacity = 1.0;
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    animation.duration = duration;
+    animation.repeatCount = HUGE_VALF;
+    animation.autoreverses = YES;
+    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    animation.fromValue = [NSNumber numberWithFloat:1.0];
+    animation.toValue = [NSNumber numberWithFloat:toValue];
+    animation.fillMode = kCAFillModeForwards;
+    animation.removedOnCompletion = NO;
+    animation.beginTime = delay; // ATTN: THIS IS OF UTMOST IMPORTANCE TO AVOID FLASHING AFTER THE TABLEVIEW APPEARS
+    [viewToFlash.layer addAnimation:animation forKey:@"animateOpacity"];
+}
+
+- (void) startFlashing {
+    [self addFlashingAnimationToView:pwdLabel duration:1.0 toValue:0.2 afterDelay:0.2];
+}
+
+- (void) stopFlashing {
+    [pwdLabel.layer removeAllAnimations];
+}
+
 #pragma mark - view handling
 
 -(UIStatusBarStyle)preferredStatusBarStyle{
     return UIStatusBarStyleLightContent;
+}
+
+- (BOOL) prefersStatusBarHidden {
+    return NO;
 }
 
 - (void)viewDidLoad {
@@ -95,15 +138,7 @@
         [[NSUserDefaults standardUserDefaults] synchronize];
     }
     
-    NSString *buildVersionString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleShortVersionString"];
-    NSString *buildNumberString = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleVersion"];
-    NSDate *today = [NSDate date];
-    NSCalendar *calendar = [NSCalendar currentCalendar];
-    NSUInteger units = (NSCalendarUnitYear );
-    NSDateComponents *components = [calendar components:units fromDate:today];
-    NSUInteger yearFrom = 2013;
-    NSUInteger yearTo = components.year;
-    versionLabel.text = [NSString stringWithFormat:@"Hackerspace Bremen\nv%@ / build %@, %lu-%lu by trailblazr", buildVersionString, buildNumberString, (unsigned long)yearFrom, (unsigned long)yearTo];
+    versionLabel.text = [HSBApplication versionStringVerbose];
 
     if( [[UIDevice currentDevice] isOS_7] ) {
         self.view.backgroundColor = kCOLOR_HACKERSPACE;
@@ -150,44 +185,6 @@
     [self.navigationController setToolbarHidden:YES animated:YES];
 }
 
-- (void) togglePassword {
-    pwdTextField.secureTextEntry = !pwdTextField.secureTextEntry;
-    pwdLabel.textColor = pwdTextField.secureTextEntry ? [UIColor whiteColor] : [UIColor redColor];
-    if( pwdTextField.secureTextEntry ) {
-        [self stopFlashing];
-    }
-    else {
-        [self startFlashing];
-    }
-}
-
-- (void) addFlashingAnimationToView:(UIView*)viewToFlash duration:(NSTimeInterval)duration toValue:(CGFloat)toValue afterDelay:(NSTimeInterval)delay {
-    [viewToFlash.layer removeAllAnimations];
-    if( duration == 0.0 ) {
-        return;
-    }
-    viewToFlash.layer.opacity = 1.0;
-    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    animation.duration = duration;
-    animation.repeatCount = HUGE_VALF;
-    animation.autoreverses = YES;
-    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-    animation.fromValue = [NSNumber numberWithFloat:1.0];
-    animation.toValue = [NSNumber numberWithFloat:toValue];
-    animation.fillMode = kCAFillModeForwards;
-    animation.removedOnCompletion = NO;
-    animation.beginTime = delay; // ATTN: THIS IS OF UTMOST IMPORTANCE TO AVOID FLASHING AFTER THE TABLEVIEW APPEARS
-    [viewToFlash.layer addAnimation:animation forKey:@"animateOpacity"];
-}
-
-- (void) startFlashing {
-    [self addFlashingAnimationToView:pwdLabel duration:1.0 toValue:0.2 afterDelay:0.2];
-}
-
-- (void) stopFlashing {
-    [pwdLabel.layer removeAllAnimations];
-}
-
 #pragma mark - user actions -
 
 - (IBAction) actionPasswordToggle:(id)sender {
@@ -200,7 +197,7 @@
     if (@available(iOS 11.0, *)) {
         LABiometryType availableBiometryType = myContext.biometryType;
         switch( availableBiometryType ) {
-            case LABiometryNone:
+            case LABiometryTypeNone:
                 supportedBiometry = @"Passwort";
                 break;
                 
@@ -313,21 +310,30 @@
     [msgTextView resignFirstResponder];
     if( uidTextField.text && [uidTextField.text length] > 0 && pwdTextField.text && [pwdTextField.text length] > 0 ) {
         NSString *message = [NSString stringWithFormat:@"Zugangsdaten bzw. Benutzerkennung und Passwort sind gültig!"];
-        AMSmoothAlertView *alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Verifizierung" andText:message andCancelButton:NO forAlertType:AlertSuccess];
-        [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-        [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-        alert.cornerRadius = 3.0f;
-        [alert show];
-        [alert release];
+
+
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Verifizierung"
+                                                                       message:message
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * action) {}];
+        
+        [alert addAction:defaultAction];
+        [self presentViewController:alert animated:YES completion:nil];
     }
     else {
         NSString *message = [NSString stringWithFormat:@"Zugangsdaten bzw. Benutzerkennung und Passwort sind ungültig!"];
-        AMSmoothAlertView *alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Verifizierung" andText:message andCancelButton:NO forAlertType:AlertFailure];
-        [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-        [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-        alert.cornerRadius = 3.0f;
-        [alert show];
-        [alert release];
+
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Verifizierung"
+                                                                       message:message
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * action) {}];
+        
+        [alert addAction:defaultAction];
+        [self presentViewController:alert animated:YES completion:nil];
     }
 }
 

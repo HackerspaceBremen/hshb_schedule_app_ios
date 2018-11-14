@@ -1,5 +1,4 @@
 #import "NSString+AdditionEmpty.h"
-#import "RegexKitLite.h"
 
 @implementation NSString (NSString_AdditionEmpty)
 
@@ -77,23 +76,6 @@
     return [self rangeOfString:stringValue options:mask].length > 0;
 }
 
-+ (BOOL) isValidEmailAddress:(NSString*)str {
-	NSString *emailRegEx = @"[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}";
-	NSArray *components = [str componentsMatchedByRegex:emailRegEx];
-	return ( [components count] == 1 );
-}
-
-
-- (BOOL) isValidEmailAddress {
-	NSString *emailRegEx = @"[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}";
-	NSArray *components = [self componentsMatchedByRegex:emailRegEx];
-	return ( [components count] == 1 );
-}
-
-- (BOOL) isValidPassword {
-    return( [self length] >= 6 );
-}
-
 - (NSString *)wordCapitalizedString {
     NSArray *partialStrings = [self componentsSeparatedByCharactersInSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]];
     NSMutableString *capitalizedString = [NSMutableString string];
@@ -136,6 +118,16 @@
                               [mutableSelf replaceCharactersInRange:sentenceRange withString:[sentence sentenceCapitalizedString]];
                           }];
     return [NSString stringWithString:mutableSelf]; // or just return mutableSelf.
+}
+
+- (NSString *) stringByStrippingHTML {
+    NSRange r;
+    NSString *s = [[self copy] autorelease];
+    while ((r = [s rangeOfString:@"<[^>]+>" options:NSRegularExpressionSearch]).location != NSNotFound)
+        s = [s stringByReplacingCharactersInRange:r withString:@""];
+    s = [s stringByReplacingOccurrencesOfString:@"&nbsp;" withString:@" "];
+    s = [s stringByReplacingOccurrencesOfString:@"(null)" withString:@""];
+    return s;
 }
 
 @end

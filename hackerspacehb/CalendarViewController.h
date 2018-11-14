@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <StoreKit/StoreKit.h>
 #import "GoogleCalendarEvent.h"
 #import "SilverDesignView.h"
 
@@ -50,6 +51,8 @@ typedef enum {
     UIImageView *animatedStar;
     
     MMPopLabel *refreshPopLabel;
+    NSTimer *alertTimer;
+    UISelectionFeedbackGenerator *feedbackGenerator;
 }
 
 @property( nonatomic, assign ) NSInteger selectedRow;
@@ -76,6 +79,8 @@ typedef enum {
 @property( nonatomic, retain ) UIImageView *animatedStar;
 
 @property( nonatomic, retain ) MMPopLabel *refreshPopLabel;
+@property( nonatomic, retain ) NSTimer *alertTimer;
+@property( nonatomic, retain ) UISelectionFeedbackGenerator *feedbackGenerator;
 
 - (IBAction) actionRefreshCalendarManually:(id)sender;
 

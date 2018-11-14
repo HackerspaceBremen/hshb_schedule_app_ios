@@ -11,9 +11,6 @@
 #import <Social/Social.h>
 #import <Accounts/Accounts.h>
 #import "GoogleCalendarEvent.h"
-#import "AMSmoothAlertView.h"
-#import "AMSmoothAlertConstants.h"
-
 
 typedef enum {
     EventKitAlertNoAccess,
@@ -24,7 +21,7 @@ typedef enum {
     EventKitAlertEventNotFound,
 } EventKitAlert;
 
-@interface EventDetailViewController : UIViewController<MFMailComposeViewControllerDelegate,AMSmoothAlertViewDelegate> {
+@interface EventDetailViewController : UIViewController<MFMailComposeViewControllerDelegate> {
     
     IBOutlet UILabel *titleLabel;
     IBOutlet UILabel *dateTimeLabel;

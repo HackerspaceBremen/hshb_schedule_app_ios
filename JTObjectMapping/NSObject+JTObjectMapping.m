@@ -74,10 +74,10 @@
             }
             else if ([(NSObject *)obj isKindOfClass:[NSNull class]]) {
                 // do nothing
-                if( DEBUG ) NSLog( @"NSNull detected while mapping with %@", mapsToValue );
+                LOG( @"NSNull detected while mapping with %@", mapsToValue );
             }
             else {
-                if( DEBUG ) NSLog( @"[mapsToValue class]: %@, [obj class]: %@ is not handled", NSStringFromClass([mapsToValue class]), NSStringFromClass([obj class]) );
+                LOG( @"[mapsToValue class]: %@, [obj class]: %@ is not handled", NSStringFromClass([mapsToValue class]), NSStringFromClass([obj class]) );
                 // NSAssert2(NO, @"[mapsToValue class]: %@, [obj class]: %@ is not handled", NSStringFromClass([mapsToValue class]), NSStringFromClass([obj class]));
             }
         }

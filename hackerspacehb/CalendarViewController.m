@@ -17,9 +17,9 @@
 #import "AppDelegate.h"
 #import "DecayAnimation.h"
 #import "SettingsViewController.h"
+#import "NSString+AdditionEmpty.h"
 
 #import "NSObject+JTObjectMapping.h"
-#import "HSBAPIClient.h"
 #import "HSBStatus.h"
 #import "HSBError.h"
 #import "HSHBDownloadCalendarEventsOperation.h"
@@ -59,6 +59,8 @@
 @synthesize labelNoFavorites;
 @synthesize animatedStar;
 @synthesize refreshPopLabel;
+@synthesize alertTimer;
+@synthesize feedbackGenerator;
 
 - (void) dealloc {
     self.eventsInCalender = nil;
@@ -81,6 +83,11 @@
     self.animatedStar = nil;
     self.refreshPopLabel = nil;
     self.operationQueue = nil;
+    if( alertTimer && [alertTimer isValid] ) {
+        [alertTimer invalidate];
+    }
+    self.alertTimer = nil;
+    self.feedbackGenerator = nil;
 
     [super dealloc];
 }
@@ -125,10 +132,10 @@
 - (NSDate*)dateLastModifiedForFileAtPath:(NSString*)filePath {
     NSFileManager *fm = [NSFileManager defaultManager];
     if( ![[NSFileManager defaultManager] fileExistsAtPath:filePath] ) {
-        if( DEBUG ) NSLog( @"FILE DOES *NOT* EXIST: %@", filePath );
+        LOG( @"FILE DOES *NOT* EXIST: %@", filePath );
         return nil;
     }
-    if( DEBUG ) NSLog( @"FILE EXISTS: %@", filePath );
+    LOG( @"FILE EXISTS: %@", filePath );
     NSError *error = nil;
     NSDictionary *itemAttributes = [fm attributesOfItemAtPath:filePath error:&error];
     return [itemAttributes valueForKey:NSFileModificationDate];
@@ -138,6 +145,7 @@
     [statusButton setImage:[UIImage imageNamed:@"sign_yellow.png"] forState:UIControlStateNormal];
     [self animateSignWobbleLong];
     self.isRefreshingCalendarData = NO;
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
     [self.tableView reloadData];
     if( !isDisplaysNoNetworkAlert ) {
         self.isDisplaysNoNetworkAlert = YES;
@@ -148,13 +156,14 @@
     }
 }
 
-- (void)refreshCalendFromInternet {
+- (void)refreshCalendarFromInternet {
 
     self.isRefreshingCalendarData = YES;
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
 
     HSHBDownloadCalendarEventsOperation *downloadCalendarEventsOperation = [HSHBDownloadCalendarEventsOperation new];
 
-    if( DEBUG ) NSLog( @"STARTING OPERATION..." );
+    LOG( @"STARTING OPERATION..." );
     NSOperation *saveAndProcessOperation = [NSBlockOperation blockOperationWithBlock:^{
 
         NSArray *events = downloadCalendarEventsOperation.events;
@@ -163,7 +172,7 @@
 
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
 
-                if( DEBUG ) NSLog( @"NO FETCHED DATA TO DISPLAY/PARSE." );
+                LOG( @"NO FETCHED DATA TO DISPLAY/PARSE." );
 
                 [self displayAlertNoConnection];
 
@@ -176,17 +185,14 @@
             NSString *pathToStoreFile = [USER_OFFLINEDATA_FOLDER stringByAppendingPathComponent:kOFFLINE_CALENDAR_DATA_FILENAME];
             BOOL hasStoredFile = [data writeToFile:pathToStoreFile atomically:YES];
             if( !hasStoredFile ) {
-                if( DEBUG ) NSLog( @"SAVING DATA OFFLINE FAILED!!!" );
+                LOG( @"SAVING DATA OFFLINE FAILED!!!" );
             }
             else {
-                if( DEBUG ) NSLog( @"SAVED DATA SUCCESSFULLY." );
+                LOG( @"SAVED DATA SUCCESSFULLY." );
             }
-
-            [self processEvents:events];
-
-
+            
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-
+                [self processEvents:events];
                 [self updateAfterRefreshUI];
 
             }];
@@ -208,24 +214,29 @@
 
 - (void) refreshCalendarDataFromLocalCachePath:(NSString*)pathToStoredFile {
     if( [[NSFileManager defaultManager] fileExistsAtPath:pathToStoredFile] ) {
-        if( DEBUG ) NSLog( @"LOADING FROM LOCAL CACHE..." );
+        LOG( @"LOADING FROM LOCAL CACHE..." );
         self.isRefreshingCalendarData = YES;
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
         NSURL *dataUrl = [NSURL fileURLWithPath:pathToStoredFile];
         NSData* data = [NSData dataWithContentsOfURL:dataUrl];
 
         NSArray *events = [NSKeyedUnarchiver unarchiveObjectWithData:data];
 
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         [self processEvents:events];
         // UPDATE UI
         [self updateAfterRefreshUI];
+        }];
     }
     else {
-        if( DEBUG ) NSLog( @"NO CACHED DATA AVAILABLE." );
+        LOG( @"NO CACHED DATA AVAILABLE." );
     }    
 }
 
 - (void) updateWithStatus:(HSBStatus*)status {
     BOOL needsToAnimate = ( [status.spaceIsOpen boolValue] != [hackerspaceBremenStatus.spaceIsOpen boolValue] );
+    [[NSUserDefaults standardUserDefaults] setBool:[status.spaceIsOpen boolValue] forKey:kUSER_DEFAULTS_LAST_SPACE_STATUS];
+    [[NSUserDefaults standardUserDefaults] synchronize];
     self.hackerspaceBremenStatus = status;
     [self appDelegate].hackerspaceBremenStatus = hackerspaceBremenStatus;
     NSString *imageName = [status.spaceIsOpen boolValue] ? @"sign_green.png" : @"sign_red.png";
@@ -271,7 +282,7 @@
 }
 
 - (void) refreshCalendarData {
-    if( DEBUG ) NSLog( @"CHECKING IF WE NEED NEW CALENDAR UPDATE..." );
+    LOG( @"CHECKING IF WE NEED NEW CALENDAR UPDATE..." );
     NSString *pathToCacheFile = [USER_OFFLINEDATA_FOLDER stringByAppendingPathComponent:kOFFLINE_CALENDAR_DATA_FILENAME];
     NSDate *lastModified = [self dateLastModifiedForFileAtPath:pathToCacheFile];
     BOOL needsUpdateOfCalendar = YES;
@@ -287,28 +298,104 @@
         else {
             needsUpdateOfCalendar = NO;
         }
-        if( DEBUG ) NSLog( @"LAST UPDATE IS MORE THAN %.0f SECONDS OLD. UPDATING IN %.0f SECONDS.",ageOfDataInSeconds, (maximumAgeInSeconds -ageOfDataInSeconds) );
+        LOG( @"LAST UPDATE IS MORE THAN %.0f SECONDS OLD. UPDATING IN %.0f SECONDS.",ageOfDataInSeconds, (maximumAgeInSeconds -ageOfDataInSeconds) );
     }
     if( ![self appDelegate].hasRefreshedDataAfterStartup || needsUpdateOfCalendar ) {
-        if( DEBUG ) NSLog( @"CACHE DATA NEEDS UPDATE..." );
+        LOG( @"CACHE DATA NEEDS UPDATE..." );
         [self appDelegate].hasRefreshedDataAfterStartup = YES;
-        [self refreshCalendFromInternet];
+        [self refreshCalendarFromInternet];
     }
     else {
-        if( DEBUG ) NSLog( @"CACHE DATA STILL OKAY." );
+        LOG( @"CACHE DATA STILL OKAY." );
         [self refreshCalendarDataFromLocalCachePath:pathToCacheFile];
     }
+}
+
+- (void) askToReviewApp {
+    NSInteger minimumLaunchesForReviewRequest = 4;
+    if( [self appDelegate].wasInstall ) {
+        [self showAfterInstall];
+    }
+    else if( [self appDelegate].wasUpdate ){
+        [self showAfterUpdate];
+    }
+    else if( [[self appDelegate] numberOfLaunches] >= minimumLaunchesForReviewRequest ) { // enough launches
+        if( ![[NSUserDefaults standardUserDefaults] objectForKey:kUSERDEFAULT_DATE_ASKED_FOR_REVIEW] ) {
+            [SKStoreReviewController requestReview];
+            [[NSUserDefaults standardUserDefaults] setDouble:[[NSDate date] timeIntervalSince1970] forKey:kUSERDEFAULT_DATE_ASKED_FOR_REVIEW];
+        }
+        else {
+            double timeInterval = [[NSUserDefaults standardUserDefaults] doubleForKey:kUSERDEFAULT_DATE_ASKED_FOR_REVIEW];
+            double oneDayInterval = 24.0*60*60;
+            double currentInterval = [[NSDate date] timeIntervalSince1970];
+            if( (timeInterval+oneDayInterval) <= currentInterval ) { // okay ask again
+                [SKStoreReviewController requestReview];
+                [[NSUserDefaults standardUserDefaults] setDouble:[[NSDate date] timeIntervalSince1970] forKey:kUSERDEFAULT_DATE_ASKED_FOR_REVIEW];
+            }
+            else {
+                // do not ask again, wait instead
+                [[self appDelegate] enableNotifications];
+            }
+        }
+    }
+    else {
+        [[self appDelegate] enableNotifications];
+    }
+}
+
+- (void) showAfterInstall {
+    NSString *message = [NSString stringWithFormat:@"Herzlich willkommen in der Hackerspace Bremen App in der Version v%@.\n\nWir freuen uns, dass du fortan auf dem Laufenden bleiben möchtest und wünschen viel Spaß mit der App.", [HSBApplication versionStringShort]];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Willkommen!"
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {}];
+    
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:^{
+        [self appDelegate].wasInstall = NO;
+        [[NSUserDefaults standardUserDefaults] setObject:[HSBApplication versionStringShort] forKey:kUSERDEFAULT_INSTALLED_VERSION];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }];
+}
+
+- (void) showAfterUpdate {
+    NSString *message = [NSString stringWithFormat:@"Information für alle Nutzer\n\nDie App wurde dank der Freiwilligen die diese App entwickeln & pflegen für dich aktualisiert auf die neuste Version v%@.", [HSBApplication versionStringShort]];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Update"
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {}];
+    
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:^{
+        // update version installed
+        [self appDelegate].wasUpdate = NO;
+        [[NSUserDefaults standardUserDefaults] setObject:[HSBApplication versionStringShort] forKey:kUSERDEFAULT_INSTALLED_VERSION];
+        // reset num of launches
+        [[NSUserDefaults standardUserDefaults] setInteger:1 forKey:kUSERDEFAULT_LAUNCH_COUNT];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }];
+}
+
+- (void) feedbackTap {
+    self.feedbackGenerator = [[UISelectionFeedbackGenerator alloc] init];
+    [feedbackGenerator prepare];
+    [feedbackGenerator selectionChanged];
+    [feedbackGenerator prepare];
 }
 
 #pragma mark - pop labels -
 
 - (void) setupPopLabels {
     
-    [[MMPopLabel appearance] setLabelColor:GREENCOLOR];
+    [[MMPopLabel appearance] setLabelColor:REDCOLOR];
     [[MMPopLabel appearance] setLabelTextColor:[UIColor whiteColor]];
-    [[MMPopLabel appearance] setLabelTextHighlightColor:[UIColor greenColor]];
-    [[MMPopLabel appearance] setLabelFont:[UIFont fontWithName:@"HelveticaNeue-Light" size:12.0f]];
-    [[MMPopLabel appearance] setButtonFont:[UIFont fontWithName:@"HelveticaNeue" size:12.0f]];
+    [[MMPopLabel appearance] setLabelTextHighlightColor:[UIColor redColor]];
+    [[MMPopLabel appearance] setLabelFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:14.0f]];
+    [[MMPopLabel appearance] setButtonFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:14.0f]];
     
     self.refreshPopLabel = [MMPopLabel popLabelWithText:
                             @"Zieh die Anzeige nach unten, um die Daten zu aktualisieren."];
@@ -327,7 +414,7 @@
 }
 
 - (IBAction)showPopLabel:(id)sender {
-    [refreshPopLabel popAtView:self.tableView.tableHeaderView];
+    [refreshPopLabel popAtView:self.navigationItem.titleView];
 }
 
 - (void)dismissedPopLabel:(MMPopLabel *)popLabel {
@@ -341,29 +428,59 @@
 #pragma mark - API calls to open space
 
 - (void) apiFetchStatusWithBlock:( void (^)( HSBStatus *status, NSError *error ) )block {
-    // https://hackerspacehb.appspot.com/v2/status
     
-    [[HSBAPIClient sharedClient] getPath:@"status" parameters:nil success:^(AFHTTPRequestOperation *operation, id jsonDataReceived) {
-        
-        if( DEBUG ) NSLog( @"\n\n*******************************\nJSON RECEIVED: %@\n\n*******************************\n", jsonDataReceived );
-        
-        HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:jsonDataReceived mapping:[[HSBStatus class] objectMapping]];
-        
-        if( DEBUG ) NSLog( @"\nSTATUS RECEIVED: %@\n", fetchedStatus );
-        
-        if( block ) {
-            block( fetchedStatus, nil ); // RETURN VALUE-SET
+    // API CALL: https://hackerspacehb.appspot.com/v2/status
+    
+    // configure network session
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    configuration.HTTPAdditionalHeaders = @{@"Accept":@"application/json"};
+    NSURLSession *mySession = [NSURLSession sessionWithConfiguration:configuration];
+    NSString *urlString = [kHACKERSPACE_API_BASE_URL stringByAppendingString:@"status"];
+    LOG( @"TASK|CONFIGURING: %@", urlString );
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
+
+    NSURLSessionDataTask *task = [mySession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if( error ) {
+            LOG(@"TASK|ERROR:\n%@", error);
+            if( block ) {
+                block( nil, error ); // RETURN VALUE-SET
+            }
         }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        if( block ) {
-            block( nil, error ); // RETURN VALUE-SET
+        else {
+            //NSLog(@"TASK|RESPONSE:\n%@", response);
+            if( data ) {
+                NSError *jsonParseError = nil;
+                id jsonObject = nil;
+                @try {
+                    jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonParseError];
+                } @catch (NSException *exception) {
+                    LOG( @"TASK|JSON ERROR:\n%@", jsonParseError );
+                }
+                
+                LOG( @"TASK|DATA:\n%@", jsonObject );
+                HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:(id<JTValidJSONResponse>)jsonObject mapping:[[HSBStatus class] objectMapping]];
+                LOG( @"\nSTATUS RECEIVED: %@\n", fetchedStatus );
+                if( block ) {
+                    block( fetchedStatus, nil ); // RETURN VALUE-SET
+                }
+            }
+            else {
+                LOG( @"TASK|DATA:\nNONE." );
+                if( block ) {
+                    NSError *error = [[NSError alloc] initWithDomain:NSURLErrorDomain code:666 userInfo:@{@"error":@"Keine Daten bekommen."}];
+                    block( nil, error ); // RETURN VALUE-SET
+                }
+            }
         }
     }];
-    
+    LOG( @"TASK|STARTING: %@", urlString );
+    [task resume]; // kick off connection
 }
 
 - (void) apiOpenSpaceWithBlock:( void (^)( HSBStatus *status, NSError *error ) )block {
-    // https://hackerspacehb.appspot.com/v2/cmd/open
+
+    // API CALL: https://hackerspacehb.appspot.com/v2/cmd/open
+    
     NSString *userName = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
     NSString *userPassword = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     NSString *defaultUserMessage = [NSString stringWithFormat:@"Der Hackerspace ist jetzt geöffnet! (Keykeeper: %@)", userName];
@@ -372,26 +489,68 @@
         userMessage = defaultUserMessage;
     }
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjects:@[userName,userPassword,userMessage] forKeys:@[@"name",@"pass",@"message"]];
-    [[HSBAPIClient sharedClient] postPath:@"cmd/open" parameters:parameters success:^(AFHTTPRequestOperation *operation, id jsonDataReceived) {
-        
-        if( DEBUG ) NSLog( @"JSON RECEIVED: %@", jsonDataReceived );
-        
-        HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:jsonDataReceived mapping:[[HSBStatus class] objectMapping]];
-        
-        if( block ) {
-            block( fetchedStatus, nil ); // RETURN VALUE-SET
-        }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        if( block ) {
-            block( nil, error ); // RETURN VALUE-SET
-        }
-    }];
+    // configure network session
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    configuration.HTTPAdditionalHeaders = @{@"Accept":@"application/json",@"Content-Type":@"application/x-www-form-urlencoded"};
+    NSURLSession *mySession = [NSURLSession sessionWithConfiguration:configuration];
+    NSString *urlString = [kHACKERSPACE_API_BASE_URL stringByAppendingString:@"cmd/open"];
+    LOG( @"TASK|CONFIGURING: %@", urlString );
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
+    // add payload
+    NSString *payloadDataAsString = [NSString stringWithFormat:@"name=%@&pass=%@&message=%@", userName, userPassword,userMessage];
+    NSData *requestData = [payloadDataAsString dataUsingEncoding:NSUTF8StringEncoding];
+
+    // add payload to body
+    [request setHTTPMethod:@"POST"];
+    [request setHTTPBody:requestData];
+    [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+
+    NSURLSessionDataTask *task = [mySession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        // check what happens
+        
+        if( error ) {
+            LOG(@"TASK|ERROR:\n%@", error);
+            if( block ) {
+                block( nil, error ); // RETURN VALUE-SET
+            }
+        }
+        else {
+            //NSLog(@"TASK|RESPONSE:\n%@", response);
+            if( data ) {
+                NSError *jsonParseError = nil;
+                id jsonObject = nil;
+                @try {
+                    jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonParseError];
+                } @catch (NSException *exception) {
+                    LOG( @"TASK|JSON ERROR:\n%@", jsonParseError );
+                }
+                
+                LOG( @"TASK|DATA:\n%@", jsonObject );
+                HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:(id<JTValidJSONResponse>)jsonObject mapping:[[HSBStatus class] objectMapping]];
+                LOG( @"\nSTATUS RECEIVED: %@\n", fetchedStatus );
+                if( block ) {
+                    block( fetchedStatus, nil ); // RETURN VALUE-SET
+                }
+            }
+            else {
+                LOG( @"TASK|DATA:\nNONE." );
+                if( block ) {
+                    NSError *error = [[NSError alloc] initWithDomain:NSURLErrorDomain code:666 userInfo:@{@"error":@"Keine Daten bekommen."}];
+                    block( nil, error ); // RETURN VALUE-SET
+                }
+            }
+        }
+
+        
+    }];
+    [task resume]; // kick off POST
 }
 
 - (void) apiCloseSpaceWithBlock:( void (^)( HSBStatus *status, NSError *error ) )block {
-    // https://hackerspacehb.appspot.com/v2/cmd/open
+    // API CALL: https://hackerspacehb.appspot.com/v2/cmd/close
+
     NSString *userName = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_UID];
     NSString *userPassword = [[self appDelegate] tokenStoredWithKey:kUSER_DEFAULTS_OPEN_SPACE_PWD];
     NSString *defaultUserMessage = [NSString stringWithFormat:@"Der Hackerspace ist jetzt geschlossen! (Keykeeper: %@)", userName];
@@ -400,22 +559,62 @@
         userMessage = defaultUserMessage;
     }
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjects:@[userName,userPassword,userMessage] forKeys:@[@"name",@"pass",@"message"]];
-    [[HSBAPIClient sharedClient] postPath:@"cmd/close" parameters:parameters success:^(AFHTTPRequestOperation *operation, id jsonDataReceived) {
-        
-        if( DEBUG ) NSLog( @"JSON RECEIVED: %@", jsonDataReceived );
-        
-        HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:jsonDataReceived mapping:[[HSBStatus class] objectMapping]];
-        
-        if( block ) {
-            block( fetchedStatus, nil ); // RETURN VALUE-SET
-        }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        if( block ) {
-            block( nil, error ); // RETURN VALUE-SET
-        }
-    }];
+    // configure network session
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    configuration.HTTPAdditionalHeaders = @{@"Accept":@"application/json",@"Content-Type":@"application/x-www-form-urlencoded"};
+    NSURLSession *mySession = [NSURLSession sessionWithConfiguration:configuration];
+    NSString *urlString = [kHACKERSPACE_API_BASE_URL stringByAppendingString:@"cmd/close"];
+    LOG( @"TASK|CONFIGURING: %@", urlString );
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
+
+    // add payload
+    NSString *payloadDataAsString = [NSString stringWithFormat:@"name=%@&pass=%@&message=%@", userName, userPassword,userMessage];
+    NSData *requestData = [payloadDataAsString dataUsingEncoding:NSUTF8StringEncoding];
+
+    // add payload to body
+    [request setHTTPMethod:@"POST"];
+    [request setHTTPBody:requestData];
+    [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
     
+    NSURLSessionDataTask *task = [mySession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        // check what happens
+        if( error ) {
+            LOG(@"TASK|ERROR:\n%@", error);
+            if( block ) {
+                block( nil, error ); // RETURN VALUE-SET
+            }
+        }
+        else {
+            // NSLog(@"TASK|RESPONSE:\n%@", response);
+            if( data ) {
+                NSError *jsonParseError = nil;
+                id jsonObject = nil;
+                @try {
+                    jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonParseError];
+                } @catch (NSException *exception) {
+                    LOG( @"TASK|JSON ERROR:\n%@", jsonParseError );
+                }
+                
+                LOG( @"TASK|DATA:\n%@", jsonObject );
+                HSBStatus *fetchedStatus= [[HSBStatus class] objectFromJSONObject:(id<JTValidJSONResponse>)jsonObject mapping:[[HSBStatus class] objectMapping]];
+                LOG( @"\nSTATUS RECEIVED: %@\n", fetchedStatus );
+                if( block ) {
+                    block( fetchedStatus, nil ); // RETURN VALUE-SET
+                }
+            }
+            else {
+                LOG( @"TASK|DATA:\nNONE." );
+                if( block ) {
+                    NSError *error = [[NSError alloc] initWithDomain:NSURLErrorDomain code:666 userInfo:@{@"error":@"Keine Daten bekommen."}];
+                    block( nil, error ); // RETURN VALUE-SET
+                }
+            }
+        }
+        
+    }];
+    [task resume]; // kick off POST
 }
 
 
@@ -441,15 +640,17 @@
 }
 
 - (void) checkHackerSpaceStatus {
-    if( DEBUG ) NSLog( @"CHECKING STATUS OF HACKERSPACE..." );
+    LOG( @"CHECKING STATUS OF HACKERSPACE..." );
     // FETCH REMOTE STATE OF HACKERSPACE
     [self apiFetchStatusWithBlock:^(HSBStatus *status, NSError *error) {
         if( status ) {
-            [self updateWithStatus:status];
-            // if( DEBUG ) NSLog( @"WE HAVE A STATUS:\n\n%@\n\n", status );
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self updateWithStatus:status];
+            // LOG( @"WE HAVE A STATUS:\n\n%@\n\n", status );
+            });
         }
         else {
-            if( DEBUG ) NSLog( @"WE HAVE NO STATUS. BUT AN ERROR:\n\n%@\n\n", error );
+            LOG( @"WE HAVE NO STATUS. BUT AN ERROR:\n\n%@\n\n", error );
             if( !isDisplaysNoStatusNoNetworkAlert ) {
                 self.isDisplaysNoStatusNoNetworkAlert = YES;
                 [self alertWithTitle:@"Hinweis" message:@"Es konnte nicht ermittelt werden, ob der Hackerspace gerade geöffnet oder geschlossen ist.\n\nUnter Umständen ist die Netzverbindung gestört, oder der Statusserver nicht erreichbar.\n\nProbiere es später noch einmal!" callback:^{
@@ -462,18 +663,8 @@
 
 #pragma mark - view handling
 
-
-- (BOOL) prefersStatusBarHidden {
-    return NO;
-}
-
-- (UIStatusBarStyle)preferredStatusBarStyle{
-    return UIStatusBarStyleLightContent;
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // [self setNeedsStatusBarAppearanceUpdate];
     self.navigationItem.title = TESTING ? @"Ereignisse (SANDBOX)" : @"Ereignisse";
     // ADD TABLE HEADER
     UIView *headerView = [[[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 100.0)] autorelease];
@@ -509,7 +700,6 @@
     */
     
     [self addSettingsButton];
-    
     [self setupPopLabels];
 }
 
@@ -519,12 +709,13 @@
     // CONFIGURE TOOLBAR
     if( !segmentedControlMenu ) {
         UIBarButtonItem *spacerItem1 = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease];
-        UIBarButtonItem *spacerItem2 = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease];
+        // UIBarButtonItem *spacerItem2 = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease];
         self.segmentedControlMenu = [[[UISegmentedControl alloc] initWithItems:@[@"Aktuell",@"Vergangenheit",@"Favoriten"]] autorelease];
         segmentedControlMenu.selectedSegmentIndex = calendarTimeIntervalSelected;
         [segmentedControlMenu addTarget:self action:@selector(actionSegmentChanged:) forControlEvents:UIControlEventValueChanged];
         UIBarButtonItem *segmentItem = [[[UIBarButtonItem alloc] initWithCustomView:segmentedControlMenu] autorelease];
-        NSArray *toolBarItems = @[spacerItem1, segmentItem,spacerItem2];
+        UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"icon_refresh"] style:UIBarButtonItemStyleDone target:self action:@selector(actionRefreshPulled:)];
+        NSArray *toolBarItems = @[refreshItem,spacerItem1, segmentItem];
         [self setToolbarItems:toolBarItems animated:YES];
     }
 
@@ -566,6 +757,10 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshCalendarData) name:kNOTIFICATION_APP_DATE_TIME_CHANGED object:nil];
     [self timerCheckStatusStart];
     // [self showPopLabel:nil];
+    self.alertTimer = [NSTimer scheduledTimerWithTimeInterval:5 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        [self askToReviewApp];
+    }];
+    //[[self appDelegate] actionScheduleTestNotification];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -673,7 +868,7 @@
 
 - (IBAction) actionRefreshPulled:(id)sender {
     [self.refreshControl beginRefreshing];
-    [self refreshCalendFromInternet];
+    [self refreshCalendarFromInternet];
 }
 
 - (IBAction) actionDisplayStatusInfo:(UIBarButtonItem*)sender {
@@ -737,7 +932,7 @@
                                                               handler:^(UIAlertAction * action) {
                                                                   // CHANGE SPACE STATUS
                                                                   if( [hackerspaceBremenStatus.spaceIsOpen boolValue] ) {
-                                                                      if( DEBUG ) NSLog( @"TRYING TO CLOSE SPACE..." );
+                                                                      LOG( @"TRYING TO CLOSE SPACE..." );
                                                                       
                                                                       // SAVE OLD STATUS TO TEXT 4
                                                                       [self saveStatusMessage:hackerspaceBremenStatus.spaceStatusMessage];
@@ -751,26 +946,28 @@
                                                                               
                                                                               dispatch_async(dispatch_get_main_queue(), ^{
                                                                                   NSString *message = [NSString stringWithFormat:@"Fehler: %li - %@",(long)[fetchedError.errorCode integerValue], fetchedError.errorMessage];
+                                                                                 
+                                                                                  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Problem"
+                                                                                                                                                 message:message
+                                                                                                                                          preferredStyle:UIAlertControllerStyleAlert];
                                                                                   
-                                                                                  AMSmoothAlertView *alert = nil;
-                                                                                  alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Problem" andText:message andCancelButton:NO forAlertType:AlertFailure];
-                                                                                  alert.delegate = nil;
-                                                                                  [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-                                                                                  [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-                                                                                  alert.cornerRadius = 3.0f;
-                                                                                  [alert show];
-                                                                                  [alert release];
+                                                                                  UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                                                                                        handler:^(UIAlertAction * action) {}];
+                                                                                  
+                                                                                  [alert addAction:defaultAction];
+                                                                                  [self presentViewController:alert animated:YES completion:nil];
+                                                                                  
                                                                               });
                                                                           }
                                                                           else {
                                                                               [self checkHackerSpaceStatus];
                                                                           }
-                                                                          if( DEBUG ) NSLog( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
+                                                                          LOG( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
                                                                           
                                                                       }];
                                                                   }
                                                                   else {
-                                                                      if( DEBUG ) NSLog( @"TRYING TO OPEN SPACE..." );
+                                                                      LOG( @"TRYING TO OPEN SPACE..." );
                                                                       [self apiOpenSpaceWithBlock:^(HSBStatus *status, NSError *error) {
                                                                           if( error ) {
                                                                               NSError *jsonParsingError = nil;
@@ -781,20 +978,22 @@
                                                                               dispatch_async(dispatch_get_main_queue(), ^{
                                                                                   NSString *message = [NSString stringWithFormat:@"Fehler: %li - %@",(long)[fetchedError.errorCode integerValue], fetchedError.errorMessage];
                                                                                   
-                                                                                  AMSmoothAlertView *alert = nil;
-                                                                                  alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Problem" andText:message andCancelButton:NO forAlertType:AlertFailure];
-                                                                                  alert.delegate = nil;
-                                                                                  [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-                                                                                  [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-                                                                                  alert.cornerRadius = 3.0f;
-                                                                                  [alert show];
-                                                                                  [alert release];
+                                                                                  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Problem"
+                                                                                                                                                 message:message
+                                                                                                                                          preferredStyle:UIAlertControllerStyleAlert];
+                                                                                  
+                                                                                  UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                                                                                        handler:^(UIAlertAction * action) {}];
+                                                                                  
+                                                                                  [alert addAction:defaultAction];
+                                                                                  [self presentViewController:alert animated:YES completion:nil];
+
                                                                               });
                                                                           }
                                                                           else {
                                                                               [self checkHackerSpaceStatus];
                                                                           }
-                                                                          if( DEBUG ) NSLog( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
+                                                                          LOG( @"NEW STATUS IS: %@ (ERROR: %@)", [status.spaceIsOpen boolValue] ? @"OPEN" : @"CLOSED", error );
                                                                       }];
                                                                   }                                                                  
                                                                   
@@ -824,7 +1023,7 @@
 }
 
 - (IBAction) actionRefreshCalendarManually:(id)sender {
-    [self refreshCalendFromInternet];
+    [self refreshCalendarFromInternet];
 }
 
 - (IBAction) actionFavoriteEvent:(UIButton*)favButton {
@@ -1076,6 +1275,13 @@
     return currentGoogleEvent;
 }
 
+- (void)tableView:(UITableView *)tableView willDisplayCell:(nonnull UITableViewCell *)cell forRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
+    cell.textLabel.backgroundColor = [UIColor clearColor];
+    cell.detailTextLabel.backgroundColor = [UIColor clearColor];
+    cell.textLabel.backgroundColor = [UIColor clearColor];
+    cell.textLabel.textColor = [UIColor blackColor];
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
     static NSString *CellIdentifier = @"Cell";
@@ -1085,12 +1291,9 @@
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
         cell.textLabel.numberOfLines = 2;
         cell.detailTextLabel.numberOfLines = 3;
-        cell.textLabel.backgroundColor = [UIColor clearColor];
-        cell.detailTextLabel.backgroundColor = [UIColor clearColor];
     }
     cell.selectionStyle = UITableViewCellSelectionStyleGray;
     cell.accessoryView = nil;
-    cell.textLabel.textColor = [UIColor blackColor];
 
     // BACKGROUND
     CGFloat cellHeight = [self tableView:tableView heightForRowAtIndexPath:indexPath];
@@ -1171,8 +1374,8 @@
         NSString *startDateDayStr = [df stringFromDate:currentGoogleEvent.StartDate];
         
         BOOL isToday = [self isSameDayDate:[NSDate date] asDate:currentGoogleEvent.StartDate];
-        cell.textLabel.textColor = isToday ? kCOLOR_HACKERSPACE : [UIColor blackColor];
-        
+        cell.textLabel.textColor = [UIColor blackColor];
+        cell.textLabel.font = isToday ? [UIFont boldSystemFontOfSize:cell.textLabel.font.pointSize] : [UIFont systemFontOfSize:cell.textLabel.font.pointSize];
         
         [df setDateFormat:@"H:mm"];
 
@@ -1182,29 +1385,55 @@
         if( currentGoogleEvent.Description ) {
             descriptionString = [NSString stringWithFormat:@"%@\n%@", descriptionString, currentGoogleEvent.Description];
         }
-        cell.detailTextLabel.text = descriptionString;
-        
-        
-        // NOT PERFORMING TOO WELL
-        /*
-        NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@""];
-        NSDictionary *hourAttributes = [NSDictionary dictionaryWithObject:kCOLOR_HACKERSPACE forKey:NSForegroundColorAttributeName];
-        
-        NSAttributedString *hoursString = [[NSAttributedString alloc] initWithString:hoursOpen attributes:hourAttributes];
-        [string appendAttributedString:hoursString];
-        [hoursString release];
+        BOOL useAttributedStrings = YES;
+        if( useAttributedStrings ) {
+            
+            NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@""];
+            NSMutableDictionary *hourAttributes = [NSMutableDictionary dictionary];
+            UIFont *boldFont = [UIFont fontWithName:@"Helvetica-Bold" size:14.0f];
+            NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+            paragraphStyle.paragraphSpacing = 0.25 * boldFont.lineHeight;
+            [hourAttributes setObject:kCOLOR_HACKERSPACE forKey:NSForegroundColorAttributeName];
+            [hourAttributes setObject:boldFont forKey:NSFontAttributeName];
+            [hourAttributes setObject:paragraphStyle forKey:NSParagraphStyleAttributeName];
 
-        
-        NSDictionary *descriptionAttributes = [NSDictionary dictionaryWithObject:[UIColor grayColor] forKey:NSForegroundColorAttributeName];
-        
-        NSString *descriptionText = [NSString stringWithFormat:@"%@", currentGoogleEvent.Description];
-        NSAttributedString *descriptionString = [[NSAttributedString alloc] initWithString:descriptionText attributes:descriptionAttributes];
-        [string appendAttributedString:descriptionString];
-        [descriptionString release];
+            NSAttributedString *hoursString = [[NSAttributedString alloc] initWithString:hoursOpen attributes:hourAttributes];
+            [string appendAttributedString:hoursString];
+            [hoursString release];
+            
+            
+            NSDictionary *descriptionAttributes = [NSDictionary dictionaryWithObject:[UIColor darkGrayColor] forKey:NSForegroundColorAttributeName];
+            
+            NSString *descriptionText = [NSString stringWithFormat:@"\n%@", currentGoogleEvent.Description];
+            descriptionText = [descriptionText stringByStrippingHTML];
+            NSAttributedString *descriptionString = [[NSAttributedString alloc] initWithString:descriptionText attributes:descriptionAttributes];
+            [string appendAttributedString:descriptionString];
+            [descriptionString release];
+            cell.detailTextLabel.attributedText = string;
 
-        cell.detailTextLabel.attributedText = string;
-         [string release];
-         */
+            /*
+            cell.detailTextLabel.textColor = [UIColor darkGrayColor];
+            CGFloat fontSize = cell.detailTextLabel.font.pointSize;
+            if( descriptionText && [descriptionText length] > 0 ) {
+                NSString *fontColorHex = [cell.detailTextLabel.textColor hexStringFromColor];
+                NSString *htmlHeader = [NSString stringWithFormat:@"<html><head><meta charset=\"utf-8\"></head><body style=\"color:#%@;font-family:%@;font-size:%ipx;\">", fontColorHex, @"Avenir-Roman", (int)fontSize];
+                NSString *htmlFooter = [NSString stringWithFormat:@"</body></html>"];
+                NSString *htmlContent = [NSString stringWithFormat:@"%@%@%@", htmlHeader,descriptionText,htmlFooter];
+                NSData *htmlAsData = [htmlContent dataUsingEncoding:NSUTF8StringEncoding];
+                NSAttributedString *attributedString = [[[NSAttributedString alloc] initWithData:htmlAsData options:@{NSDocumentTypeDocumentAttribute:NSHTMLTextDocumentType} documentAttributes:nil error:nil] autorelease];
+                
+                cell.detailTextLabel.font = [UIFont boldSystemFontOfSize:fontSize];
+                cell.detailTextLabel.backgroundColor = [UIColor clearColor];
+                cell.detailTextLabel.attributedText = attributedString;
+            }
+             */
+
+            
+            [string release];
+        }
+        else { // NOT PERFORMING TOO WELL
+            cell.detailTextLabel.text = descriptionString;
+         }
         
         // STYLE ICON
         MOOStyleTrait *grayIconTrait = [MOOStyleTrait trait];
@@ -1242,10 +1471,12 @@
             cell.accessoryType = UITableViewCellAccessoryNone;
         }
         
-        [df release], df = nil;
+        [df release];
+        df = nil;
     }
     return cell;
 }
+
 
 #pragma mark - UITableViewDelegate
 
@@ -1290,6 +1521,7 @@
     // TRIGER NEW FETCH
     if( !eventsInCalender || [eventsInCalender count] == 0 ) {
         self.isRefreshingCalendarData = YES;
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
         [self.tableView reloadData];
         [self refreshCalendarData];
         return;
@@ -1302,6 +1534,7 @@
         detailViewController.eventToDisplay = event;
         [self.navigationController pushViewController:detailViewController animated:YES];
         [detailViewController release];
+        [self feedbackTap];
     }
     else {
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -1320,20 +1553,20 @@
 }
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    if( DEBUG ) NSLog( @"%s", __PRETTY_FUNCTION__  );
+    LOG( @"%s", __PRETTY_FUNCTION__  );
 }
 
 - (void) tableView:(UITableView *)tableView willBeginEditingRowAtIndexPath:(NSIndexPath *)indexPath {
-    // if( DEBUG ) NSLog( @"%s", __PRETTY_FUNCTION__  );
+    // LOG( @"%s", __PRETTY_FUNCTION__  );
 }
 
 - (void) tableView:(UITableView *)tableView didEndEditingRowAtIndexPath:(NSIndexPath *)indexPath {
-    // if( DEBUG ) NSLog( @"%s", __PRETTY_FUNCTION__  );
+    // LOG( @"%s", __PRETTY_FUNCTION__  );
 }
 
 - (void) tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if( DEBUG ) NSLog( @"%s", __PRETTY_FUNCTION__  );
+    LOG( @"%s", __PRETTY_FUNCTION__  );
     GoogleCalendarEvent *eventToDelete = [self eventAtIndexPath:indexPath];
     if( eventToDelete ) {
         [tableView beginUpdates];
@@ -1363,7 +1596,7 @@
  }
 
 - (void) tableView:(UITableView *)tableView performAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender {
-    // if( DEBUG ) NSLog( @"%s", __PRETTY_FUNCTION__  );
+    // LOG( @"%s", __PRETTY_FUNCTION__  );
 }
 
 #pragma mark - parse google calendar & prepare data sources
@@ -1378,7 +1611,7 @@
             }
         }
     }
-    if( DEBUG ) NSLog( @"WE HAVE RECOMPILED %lu FAVORITES.", (unsigned long)[eventsFavouritedSorted count] );
+    LOG( @"WE HAVE RECOMPILED %lu FAVORITES.", (unsigned long)[eventsFavouritedSorted count] );
     NSUInteger numOfFavorites = (unsigned int)[eventsFavouritedSorted count];
     NSString *favoritesTitle = @"Favoriten";
     if( [eventsFavouritedSorted count] > 0 ) {
@@ -1394,8 +1627,7 @@
     });
 }
 
-- (void)processEvents:(NSArray *)events
-{
+- (void)processEvents:(NSArray *)events {
     if(!events) return;
     
     self.eventsInCalender = [NSMutableArray array];
@@ -1520,6 +1752,7 @@
     
     [self recompileFavoritedEvents];
     self.isRefreshingCalendarData = NO;
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
 }
 
 #pragma mark - star animation -

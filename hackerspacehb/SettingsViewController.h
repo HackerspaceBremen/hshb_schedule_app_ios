@@ -8,8 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import <LocalAuthentication/LocalAuthentication.h>
-#import "AMSmoothAlertView.h"
-#import "AMSmoothAlertConstants.h"
 
 @interface SettingsViewController : UIViewController<UITextFieldDelegate,UITextViewDelegate> {
 

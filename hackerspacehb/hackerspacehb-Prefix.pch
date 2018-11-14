@@ -4,10 +4,6 @@
 
 #import <Availability.h>
 
-#ifndef __IPHONE_4_0
-#warning "This project uses features only available in iOS SDK 4.0 and later."
-#endif
-
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
@@ -22,9 +18,11 @@
 
 // LOGGING
 #define LOG( someString, ... )                          if( DEBUG ) NSLog( someString, ##__VA_ARGS__ )          // DEBUGGING
+#define LOC(someString)                                 NSLocalizedString(someString,nil)
 
-// THIS STUFF MUST BE ZERO ON DEPLOYMENT
+// MUST BE ZERO ON DEPLOYMENT
 #define DEBUG_MASTER                        0
+#define DEBUG_BACKGROUND                    0
 #define TESTING                             0 // uid: somename (ask admin before) pwd: somepassword
 
 // SETUP DEBUG FLAG DEFINED BY XCODE
@@ -36,6 +34,16 @@
 #endif
 
 #define DEBUG_COLORIZE_FRAMES               0
+
+// BACKGROUND FETCHING
+#define kUSER_DEFAULTS_LAST_SPACE_STATUS    @"boolLastSpaceStatus"
+
+// NOTIFICATIONS
+#define kNOTIFICATION_APP_GOES_BACKGROUND   @"appGoesInBackground"
+#define kNOTIFICATION_APP_GOES_FOREGROUND   @"appGoesInForeground"
+#define kNOTIFICATION_APP_GOES_ACTIVE       @"appGoesActive"
+#define kNOTIFICATION_APP_GOES_INACTIVE     @"appGoesInactive"
+#define kNOTIFICATION_APP_CONTENT_ARRIVED   @"appContentArrived"
 
 // MATH STUFF
 #define radians(degrees) degrees * M_PI / 180
@@ -86,6 +94,10 @@
 #define kCOLOR_HACKERSPACE_VERY_DARK        [UIColor colorWithRGBHex:0x13562D]
 #define kCOLOR_HACKERSPACE_VERY_BRIGHT      [UIColor colorWithRGBHex:0x48C35B]
 
+#define GREENCOLOR  [UIColor colorWithRed:0.443 green:0.765 blue:0.255 alpha:1]
+#define REDCOLOR    [UIColor colorWithRed:0.906 green:0.296 blue:0.235 alpha:1]
+#define BLUECOLOR   [UIColor colorWithRed:0.204 green:0.286 blue:0.369 alpha:1]
+
 #define kBACKGROUND_QUEUE                   dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 )
 
 // THERE DOES EXIST A COMPLICATED LIBRARY https://code.google.com/p/google-api-objectivec-client/
@@ -113,3 +125,7 @@
 #define kTEXTVIEW_FEEDBACK_COLOR_WRITE  [UIColor blackColor]
 #define kTEXTVIEW_FEEDBACK_COLOR_PLACE  [UIColor lightGrayColor]
 
+#define kUSERDEFAULT_LAUNCH_COUNT           @"launchesCounted"
+#define kUSERDEFAULT_INSTALLED_VERSION      @"currentlyInstalledVersion"
+#define kUSERDEFAULT_DATE_ASKED_FOR_REVIEW  @"dateLastAskedForReview"
+#define kUSER_DEFAULTS_DATA_PUSH_TOKEN      @"dataPushToken"

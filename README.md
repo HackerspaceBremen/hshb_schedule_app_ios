@@ -10,7 +10,7 @@ Der Screenshot [in voller Größe](http://www.noxymo.com/filespublic/hshb_iphone
 ![image](http://www.noxymo.com/filespublic/hshb_iphone_x_small)
 
 ## Download
-Die App ist im **AppStore** verfügbar und kann dort kostenlos [heruntergeladen](https://itunes.apple.com/us/app/hackerspace-bremen/id707128929?mt=8) werden zur Installation.
+Die App ist im **AppStore** verfügbar und kann dort kostenlos [heruntergeladen](https://itunes.apple.com/de/app/hackerspace-bremen/id707128929?mt=8) werden zur Installation.
 
 ## Funktionen
 Die App stellt **folgende Funktionen** bereit:

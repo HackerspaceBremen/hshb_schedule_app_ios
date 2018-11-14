@@ -12,6 +12,7 @@
 #import "HSBStatus.h"
 #import "HSBContact.h"
 #import "HSBResult.h"
+#import "NSString+AdditionEmpty.h"
 
 #define kACTIONSHEET_EVENT_DETAIL_ASK_ACTION 200
 
@@ -44,6 +45,10 @@
 
 -(UIStatusBarStyle)preferredStatusBarStyle{
     return UIStatusBarStyleLightContent;
+}
+
+- (BOOL) prefersStatusBarHidden {
+    return NO;
 }
 
 - (void)viewDidLoad {
@@ -88,7 +93,28 @@
         }
         [descriptionText appendFormat:@"%@", eventToDisplay.where];
     }
+    descriptionText = [NSMutableString stringWithString:[descriptionText stringByStrippingHTML]];
     descriptionTextView.text = [NSString stringWithString:descriptionText];
+    
+    /*
+    CGFloat fontSize = 16.0;
+    descriptionTextView.font = [descriptionTextView.font fontWithSize:fontSize];
+    if( descriptionText && [descriptionText length] > 0 ) {
+        
+        NSString *fontColorHex = [[UIColor blackColor] hexStringFromColor];
+        NSString *htmlHeader = [NSString stringWithFormat:@"<html><head><meta charset=\"utf-8\"></head><body style=\"color:#%@;font-family:%@;font-size:%ipx;\">", fontColorHex, @"Avenir-Medium", (int)fontSize];
+        NSString *htmlFooter = [NSString stringWithFormat:@"</body></html>"];
+        NSString *htmlContent = [NSString stringWithFormat:@"%@%@%@", htmlHeader,descriptionText,htmlFooter];
+        NSData *htmlAsData = [htmlContent dataUsingEncoding:NSUTF8StringEncoding];
+        NSAttributedString *attributedString = [[[NSAttributedString alloc] initWithData:htmlAsData options:@{NSDocumentTypeDocumentAttribute:NSHTMLTextDocumentType} documentAttributes:nil error:nil] autorelease];
+        
+        descriptionTextView.font = [UIFont boldSystemFontOfSize:fontSize];
+        descriptionTextView.textColor = [UIColor blackColor];
+        descriptionTextView.backgroundColor = [UIColor clearColor];
+        descriptionTextView.attributedText = attributedString;
+    }
+    */
+    
     
     // CONFIGURE TOOLBAR
     BOOL useToolbar = NO;
@@ -173,98 +199,103 @@
 
 - (void) presentAlertForEvent:(EventKitAlert)alertType error:(NSError*)error {
     
-    AMSmoothAlertView *alert = nil;
+    UIAlertController* alert = nil;
     
     switch( alertType ) {
         case EventKitAlertNoAccess: {
             NSString *message = [NSString stringWithFormat:@"Eintrag fehlgeschlagen, bitte Kalenderzugriff erlauben."];
 
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Kalender" andText:message andCancelButton:NO forAlertType:AlertFailure];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
+            alert = [UIAlertController alertControllerWithTitle:@"Kalender"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+            
             break;
         }
             
         case EventKitAlertAlreadyPresent: {
             NSString *message = [NSString stringWithFormat:@"Eintrag existiert bereits, Duplikat verhindert!"];
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Kalender" andText:message andCancelButton:NO forAlertType:AlertFailure];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
+
+            alert = [UIAlertController alertControllerWithTitle:@"Kalender"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+
             break;
         }
             
         case EventKitAlertErrorWhileWriting: {
             NSString *message = [NSString stringWithFormat:@"Eintrag fehlgeschlagen. Grund ist unbekannt!"];
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Kalender" andText:message andCancelButton:NO forAlertType:AlertFailure];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
+
+            alert = [UIAlertController alertControllerWithTitle:@"Kalender"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+
             break;
         }
             
         case EventKitAlertAddedSuccessfully: {
             NSString *message = [NSString stringWithFormat:@"Eintrag in den Standardkalender übertragen."];
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Kalender" andText:message andCancelButton:NO forAlertType:AlertSuccess];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
+
+            alert = [UIAlertController alertControllerWithTitle:@"Kalender"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+
             break;
         }
 
         case EventKitAlertDeletedSuccessfully: {
             NSString *message = [NSString stringWithFormat:@"Eintrag aus dem Standardkalender entfernt."];
 
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Kalender" andText:message andCancelButton:NO forAlertType:AlertSuccess];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
+            alert = [UIAlertController alertControllerWithTitle:@"Kalender"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+
             break;
         }
 
         case EventKitAlertEventNotFound: {
             NSString *message = [NSString stringWithFormat:@"Eintrag existierte nicht im Standardkalender, daher nicht gelöscht."];
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Kalender" andText:message andCancelButton:NO forAlertType:AlertFailure];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
+
+            alert = [UIAlertController alertControllerWithTitle:@"Kalender"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+
             break;
         }
 
         default:
             break;
     }
-    
-    if( alert ) {
-        alert.cornerRadius = 3.0f;
-    }
-    [alert show];
-    [alert release];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 #pragma mark - user actions
@@ -282,13 +313,13 @@
                                                                        message:nil
                                                                 preferredStyle:UIAlertControllerStyleActionSheet];
         
-        UIAlertAction* shareAction = [UIAlertAction actionWithTitle:@"Medien teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
-            [self actionShare];
+        UIAlertAction* shareFullTextAction = [UIAlertAction actionWithTitle:@"Volltext teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            [self actionShareFullText];
         }];
         
-        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+        UIAlertAction* shareShortTextAction = [UIAlertAction actionWithTitle:@"Kurztext teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
             // TWITTER TEILEN
-            [self actionShareViaTwitter];
+            [self actionShareShortText];
         }];
 
         UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Abbrechen" style:UIAlertActionStyleCancel handler:nil];
@@ -299,8 +330,8 @@
         }];
 
         [alert addAction:removeAction];
-        [alert addAction:shareAction];
-        [alert addAction:twitterAction];
+        [alert addAction:shareFullTextAction];
+        [alert addAction:shareShortTextAction];
         [alert addAction:cancelAction];
         [self presentViewController:alert animated:YES completion:nil];
     }
@@ -308,13 +339,13 @@
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:sheetTitle
                                                                        message:nil
                                                                 preferredStyle:UIAlertControllerStyleActionSheet];
-        UIAlertAction* shareAction = [UIAlertAction actionWithTitle:@"Medien teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
-            [self actionShare];
+        UIAlertAction* shareFullTextAction = [UIAlertAction actionWithTitle:@"Volltext teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            [self actionShareFullText];
         }];
 
-        UIAlertAction* twitterAction = [UIAlertAction actionWithTitle:@"Twitter teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+        UIAlertAction* shareShortTextAction = [UIAlertAction actionWithTitle:@"Kurztext teilen" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
             // TWITTER TEILEN
-            [self actionShareViaTwitter];
+            [self actionShareShortText];
         }];
         
         UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Abbrechen" style:UIAlertActionStyleCancel handler:nil];
@@ -325,28 +356,32 @@
         }];
         
         [alert addAction:removeAction];
-        [alert addAction:shareAction];
-        [alert addAction:twitterAction];
+        [alert addAction:shareFullTextAction];
+        [alert addAction:shareShortTextAction];
         [alert addAction:cancelAction];
         [self presentViewController:alert animated:YES completion:nil];
     }
 }
 
 - (BOOL) hasEventInCalendar {
-    self.eventStore = [[[EKEventStore alloc] init] autorelease];
-    EKEvent *event  = [EKEvent eventWithEventStore:eventStore];
-    event.title     = eventToDisplay.Title;
-    event.startDate = eventToDisplay.StartDate;
-    event.endDate   = eventToDisplay.EndDate;
-    event.URL = [NSURL URLWithString:eventToDisplay.uniqueId];
-    [event setNotes:eventToDisplay.Description];
-    NSPredicate *eventMatchPredicate = [eventStore predicateForEventsWithStartDate:eventToDisplay.StartDate endDate:eventToDisplay.EndDate calendars:@[eventStore.defaultCalendarForNewEvents]];
-    
-    NSArray *eventsFound = [eventStore eventsMatchingPredicate:eventMatchPredicate];
-    if( eventsFound && [eventsFound count] > 0 ) {
-        return YES;
-    }
-    else {
+    @try {
+        self.eventStore = [[[EKEventStore alloc] init] autorelease];
+        EKEvent *event  = [EKEvent eventWithEventStore:eventStore];
+        event.title     = eventToDisplay.Title;
+        event.startDate = eventToDisplay.StartDate;
+        event.endDate   = eventToDisplay.EndDate;
+        event.URL = [NSURL URLWithString:eventToDisplay.uniqueId];
+        [event setNotes:eventToDisplay.Description];
+        NSPredicate *eventMatchPredicate = [eventStore predicateForEventsWithStartDate:eventToDisplay.StartDate endDate:eventToDisplay.EndDate calendars:@[eventStore.defaultCalendarForNewEvents]];
+        
+        NSArray *eventsFound = [eventStore eventsMatchingPredicate:eventMatchPredicate];
+        if( eventsFound && [eventsFound count] > 0 ) {
+            return YES;
+        }
+        else {
+            return NO;
+        }
+    } @catch (NSException *exception) {
         return NO;
     }
 }
@@ -375,7 +410,7 @@
                 }
             }
             if( isAlreadyPresent ) { // DO NOT ADD EVENT
-                if( DEBUG ) NSLog( @"ERROR EVENT ALREADY IN CALENDAR: %@", eventToDisplay.Title );
+                LOG( @"ERROR EVENT ALREADY IN CALENDAR: %@", eventToDisplay.Title );
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_ALREADY_PRESENT object:nil];
                 });
@@ -385,14 +420,14 @@
                 NSError *error = nil;
                 [eventStore saveEvent:event span:EKSpanThisEvent error:&error];
                 if( error ) {
-                    if( DEBUG ) NSLog( @"ERROR PUSHING EVENT TO CALENDAR: %@", error );
+                    LOG( @"ERROR PUSHING EVENT TO CALENDAR: %@", error );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_SOME_ERROR object:error];
                         [self updateFavoriteLabel];
                     });
                 }
                 else {
-                    if( DEBUG ) NSLog( @"EVENT PUSHED TO CALENDAR: %@", eventToDisplay.Title );
+                    LOG( @"EVENT PUSHED TO CALENDAR: %@", eventToDisplay.Title );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_SUCCESS object:error];
                         [self updateFavoriteLabel];
@@ -402,7 +437,7 @@
             }
         }
         else {
-            if( DEBUG ) NSLog( @"NO ACCESS. PUSHING EVENT TO CALENDAR: %@", error);
+            LOG( @"NO ACCESS. PUSHING EVENT TO CALENDAR: %@", error);
             dispatch_async(dispatch_get_main_queue(), ^{
                 [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_NO_ACCESS object:error];
             });
@@ -439,14 +474,14 @@
                 NSError *error = nil;
                 [eventStore removeEvent:eventToDelete span:EKSpanThisEvent error:&error];
                 if( error ) {
-                    if( DEBUG ) NSLog( @"ERROR DELETING EVENT FROM CALENDAR: %@", error );
+                    LOG( @"ERROR DELETING EVENT FROM CALENDAR: %@", error );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_SOME_ERROR object:error];
                         [self updateFavoriteLabel];
                     });
                 }
                 else {
-                    if( DEBUG ) NSLog( @"EVENT REMOVED FROM CALENDAR: %@", eventToDisplay.Title );
+                    LOG( @"EVENT REMOVED FROM CALENDAR: %@", eventToDisplay.Title );
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_DELETED object:error];
                         [self updateFavoriteLabel];
@@ -454,14 +489,14 @@
                 }
             }
             else { // DO NOTHING EVENT NOT FOUND
-                if( DEBUG ) NSLog( @"EVENT NOT FOUND IN CALENDAR: %@", eventToDisplay.Title );
+                LOG( @"EVENT NOT FOUND IN CALENDAR: %@", eventToDisplay.Title );
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_NOT_FOUND object:nil];
                 });
             }
         }
         else {
-            if( DEBUG ) NSLog( @"NO ACCESS. REMOVING EVENT FROM CALENDAR: %@", error);
+            LOG( @"NO ACCESS. REMOVING EVENT FROM CALENDAR: %@", error);
             dispatch_async(dispatch_get_main_queue(), ^{
                 [[NSNotificationCenter defaultCenter] postNotificationName:kNOTIFICATION_ALERT_NO_ACCESS object:error];
             });
@@ -470,7 +505,7 @@
     [self updateFavoriteLabel];
 }
 
-- (IBAction)actionShare {
+- (IBAction)actionShareFullText {
     
     NSDateFormatter *df = [[NSDateFormatter alloc] init];
     NSLocale *locale = [NSLocale currentLocale];
@@ -482,7 +517,8 @@
     
     NSString *payloadDateTimeString = [NSString stringWithFormat:@"%@\n%@ bis %@ Uhr", dateString, [df stringFromDate:eventToDisplay.StartDate], [df stringFromDate:eventToDisplay.EndDate]];
     
-    [df release], df = nil;
+    [df release];
+    df = nil;
     
     NSString *payloadTitle = eventToDisplay.Title;
     
@@ -501,7 +537,7 @@
     
     NSString *contentMailSubjectText = @"Veranstaltungstipp Hackerspace Bremen e.V.";
     
-    NSString *contentBrandingText = [NSString stringWithFormat:@"%@\n%@\n\n%@\n\n%@:\n%@ %@\nim AppStore:\n%@", payloadTitle,payloadDateTimeString,  payloadBody, @"Quelle", @"Hackerspace Bremen e.V.", @"(iOS App)", kHACKERSPACE_APPSTORE_URL];
+    NSString *contentBrandingText = [NSString stringWithFormat:@"%@\n\n%@\n%@\n\n%@\n\n%@:\n%@ %@\nim AppStore:\n%@", contentMailSubjectText, payloadTitle,payloadDateTimeString,  payloadBody, @"Quelle", @"Hackerspace Bremen e.V.", @"(iOS App)", kHACKERSPACE_APPSTORE_URL];
     
     NSArray *itemsToShare = nil;
     itemsToShare = @[contentBrandingText];
@@ -515,35 +551,14 @@
     controller.excludedActivityTypes = @[UIActivityTypeAssignToContact,UIActivityTypePostToWeibo];
     
     controller.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
-        if( DEBUG ) NSLog( @" activityType: %@ completed: %@", activityType, completed ? @"YES" : @"NO" );
+        LOG( @" activityType: %@ completed: %@", activityType, completed ? @"YES" : @"NO" );
     };
     [self presentViewController:controller animated:YES completion:nil];
+    
 }
 
-- (IBAction) actionShareViaTwitter {
-    if( NSClassFromString( @"SLComposeViewController" ) == NULL ) {
-        return;
-    }
-
-    if( ![SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter] ) {
-
-        AMSmoothAlertView *alert = nil;
-        NSString *message = [NSString stringWithFormat:@"Keine Twitter Accounts zum Versenden von Tweets konfiguriert."];
-        alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Twitter" andText:message andCancelButton:NO forAlertType:AlertFailure];
-        [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-        [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-        alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-            if(button == alertObj.defaultButton) {
-            } else {
-            }
-        };
-        alert.cornerRadius = 3.0f;
-        [alert show];
-        [alert release];
-        return;
-    }
+- (IBAction) actionShareShortText {
     
-    SLComposeViewController *controller = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
     // MESSAGE COMPOSING
     EKEvent *event  = [EKEvent eventWithEventStore:eventStore];
     event.title     = eventToDisplay.Title;
@@ -572,36 +587,27 @@
         hasWhereInfo = NO;
     }
     NSString *whereString = hasWhereInfo ? [NSString stringWithFormat:@"%@", eventToDisplay.where] : @"im";
-    NSString *tweetMessage = [NSString stringWithFormat:@"%@ @%@: %@, %@ #hackerspace #bremen", eventDate, twitterAccount, eventToDisplay.Title, whereString];
-    [controller setInitialText:tweetMessage];
-    [controller addURL:[NSURL URLWithString:eventToDisplay.publicCalendarUrl]];
-    [self presentViewController:controller animated:YES completion:^{
-        // do nothing
-    }];
-    controller.completionHandler = ^( SLComposeViewControllerResult result ) {
-        
-        if( result == SLComposeViewControllerResultDone ) {
+    NSString *sharedMessage = [NSString stringWithFormat:@"%@ @%@: %@, %@ #hackerspace #bremen ", eventDate, twitterAccount, eventToDisplay.Title, whereString];
+    
+    NSURL *eventUrl = [NSURL URLWithString:eventToDisplay.publicCalendarUrl];
+    UIImage *imageToShare = [UIImage imageNamed:@"Icon_60.png"];
+    
+    NSArray *itemsToShare = nil;
+    itemsToShare = @[sharedMessage,eventUrl, imageToShare];
+    
+    NSArray *applicationActivities = @[];
 
-            AMSmoothAlertView *alert = nil;
-            NSString *message = [NSString stringWithFormat:@"Der Tweet wurde erfolgreich versendet."];
-            alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"Twitter" andText:message andCancelButton:NO forAlertType:AlertSuccess];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.completionBlock = ^void (AMSmoothAlertView *alertObj, UIButton *button) {
-                if(button == alertObj.defaultButton) {
-                } else {
-                }
-            };
-            alert.cornerRadius = 3.0f;
-            [alert show];
-            [alert release];
-            
-        }
-        [self dismissViewControllerAnimated:YES completion:^{
-            // do nothing
-        }];
-        
+    UIActivityViewController *controller = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:applicationActivities];
+    // SET E-MAIL SUBJECT
+    NSString *contentMailSubjectText = @"Veranstaltungstipp Hackerspace Bremen e.V.";
+    [controller setValue:contentMailSubjectText forKey:@"subject"];
+    
+    controller.excludedActivityTypes = @[UIActivityTypeAssignToContact,UIActivityTypePostToWeibo];
+    
+    controller.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
+        LOG( @" activityType: %@ completed: %@", activityType, completed ? @"YES" : @"NO" );
     };
+    [self presentViewController:controller animated:YES completion:nil];
 }
 
 - (IBAction) actionRateViaTwitter {
@@ -623,45 +629,64 @@
             BOOL shouldSHowAlert = NO;
             if( shouldSHowAlert ) {
                 NSString *message = [NSString stringWithFormat:@"Versenden der E-Mail wurde unterbrochen/abgebrochen!"];
-                AMSmoothAlertView *alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"E-Mail" andText:message andCancelButton:NO forAlertType:AlertFailure];
-                [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-                [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-                alert.cornerRadius = 3.0f;
-                [alert show];
-                [alert release];
+
+                UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"E-Mail"
+                                                                               message:message
+                                                                        preferredStyle:UIAlertControllerStyleAlert];
+                
+                UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                      handler:^(UIAlertAction * action) {}];
+                
+                [alert addAction:defaultAction];
+                [self presentViewController:alert animated:YES completion:nil];
             }
 			break;
         }
             
 		case MFMailComposeResultSaved: {
             NSString *message = [NSString stringWithFormat:@"Mail wurde für späteren Versand gespeichert!"];
-            AMSmoothAlertView *alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"E-Mail" andText:message andCancelButton:NO forAlertType:AlertSuccess];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.cornerRadius = 3.0f;
-            [alert show];
-            [alert release];
+
+            UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"E-Mail"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+            [self presentViewController:alert animated:YES completion:nil];
+
 			break;
         }
 		case MFMailComposeResultSent: {
             NSString *message = [NSString stringWithFormat:@"Mail wurde versendet!"];
-            AMSmoothAlertView *alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"E-Mail" andText:message andCancelButton:NO forAlertType:AlertSuccess];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.cornerRadius = 3.0f;
-            [alert show];
-            [alert release];
+
+            UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"E-Mail"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+            [self presentViewController:alert animated:YES completion:nil];
+
 			break;
         }
             
 		case MFMailComposeResultFailed: {
             NSString *message = [NSString stringWithFormat:@"Versand fehlgeschlagen!"];
-            AMSmoothAlertView *alert = [[AMSmoothAlertView alloc]initDropAlertWithTitle:@"E-Mail" andText:message andCancelButton:NO forAlertType:AlertFailure];
-            [alert setTitleFont:[UIFont fontWithName:@"Verdana" size:25.0f]];
-            [alert.defaultButton setTitle:@"OK" forState:UIControlStateNormal];
-            alert.cornerRadius = 3.0f;
-            [alert show];
-            [alert release];
+
+            UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"E-Mail"
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction * action) {}];
+            
+            [alert addAction:defaultAction];
+            [self presentViewController:alert animated:YES completion:nil];
+
 			break;
         }
             

@@ -651,8 +651,9 @@ static BOOL is_leap_year(unsigned year);
 		offset /= 60;  //bring down to minutes
 		if (offset == 0)
 			str = [str stringByAppendingString:ISO_TIMEZONE_UTC_FORMAT];
-		else
-			str = [str stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT, offset / 60, offset % 60];
+        else {
+			str = [str stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT, ((long)(offset / 60)), (long)(offset % 60)];
+        }
 	}
 	return str;
 }

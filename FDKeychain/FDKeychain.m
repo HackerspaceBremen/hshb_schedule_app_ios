@@ -450,7 +450,7 @@
 	}
 	else
 	{
-		itemAttributesAndData = (__bridge_transfer NSDictionary *)itemAttributesAndDataTypeRef;
+        itemAttributesAndData = (NSDictionary *)itemAttributesAndDataTypeRef;
 	}
 
 	return itemAttributesAndData;

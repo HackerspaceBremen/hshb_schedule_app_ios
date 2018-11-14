@@ -38,7 +38,6 @@ typedef enum { // SCREEN DIMENSIONS IN INCHES
 + (UIDeviceType) deviceType;
 + (NSString*) deviceTypeString;
 
-+ (UIBarButtonItem*) barButtonItemWithImageName:(NSString*)imageName target:(id)target action:(SEL)selector label:(NSString*)accessibilityLabel hint:(NSString*)accessibilityHint;
 + (UIImage*) circleImageWithColor:(UIColor*)colorTop andColor:(UIColor*)colorBottom;
 
 - (NSString*) platform;

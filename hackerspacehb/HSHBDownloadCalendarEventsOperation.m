@@ -125,12 +125,16 @@
     [urlString appendString:@"?orderBy=startTime"];
     [urlString appendFormat:@"&timeMin=%@", [timeMinString hshb_urlEncodedWithEncoding:NSUTF8StringEncoding]];
     [urlString appendFormat:@"&timeMax=%@", [timeMaxString hshb_urlEncodedWithEncoding:NSUTF8StringEncoding]];
+    
+    
     if (pageToken) {
         [urlString appendFormat:@"&pageToken=%@", pageToken];
     }
     [urlString appendString:@"&singleEvents=true"];
 
     [urlString appendFormat:@"&key=%@", [kGOOGLE_CALENDAR_API_KEY hshb_urlEncodedWithEncoding:NSUTF8StringEncoding]];
+
+    LOG( @"\nLOGGED ENCODING: %@\n", urlString );
 
     [now release];
     [calendar release];
@@ -139,25 +143,40 @@
 }
 
 - (void)loadEventsWithPageToken:(NSString *)pageToken {
-    if( DEBUG ) NSLog( @"LOADING GOOGLE CALENDAR EVENTS..." );
+    LOG( @"LOADING GOOGLE CALENDAR EVENTS..." );
     NSURL *url = [self urlWithPageToken:pageToken];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:30.0];
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     [request setHTTPMethod:@"GET"];
 
+    NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
+    NSError *error = nil;
+    if( !error ) {
+        LOG( @"---- DOWNLOAD INITIATED ..." );
+        NSURLSessionDownloadTask *downloadDataTask = [session downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+            NSData *downloadedData = [NSData dataWithContentsOfURL:location];
+            LOG( @"---- DOWNLOAD SUCCEEDED ---" );
+            [self handleResponseData:downloadedData];
+        }];
+        [downloadDataTask resume];
+    }
+    else {
+        LOG( @"---- DOWNLOAD ERROR ... %@", error );
+    }
+    
+    /*
     NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:NO];
     [connection setDelegateQueue:[NSOperationQueue currentQueue]];
-
     self.connection = connection;
     [connection release];
-
     [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-
     [connection start];
+     */
 }
 
 - (void)handleResponseData:(NSData *)data {
-    if( DEBUG ) NSLog( @"HANDLING GOOGLE CALENDAR EVENTS..." );
+    LOG( @"HANDLING GOOGLE CALENDAR EVENTS..." );
     NSError *error;
     NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
 

@@ -108,7 +108,7 @@ static NSMutableDictionary *colorNameCache = nil;
     // Corrects region 6 hue crossover
     if (h < 0.0f)
         h += 1.0f;
-	if( DEBUG ) NSLog( @"UIColor_Expanded: hue = %f", h );
+	LOG( @"UIColor_Expanded: hue = %f", h );
     return h;
 	
 	/*
