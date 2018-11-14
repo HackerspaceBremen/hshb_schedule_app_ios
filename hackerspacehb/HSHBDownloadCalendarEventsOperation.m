@@ -151,20 +151,20 @@
 
     NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
-    NSError *error = nil;
-    if( !error ) {
-        LOG( @"---- DOWNLOAD INITIATED ..." );
-        NSURLSessionDownloadTask *downloadDataTask = [session downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
-            NSData *downloadedData = [NSData dataWithContentsOfURL:location];
-            LOG( @"---- DOWNLOAD SUCCEEDED ---" );
-            [self handleResponseData:downloadedData];
+    
+    LOG( @"---- DOWNLOAD INITIATED ..." );
+    // NSError *error = nil;
+    NSURLSessionDownloadTask *downloadDataTask = [session downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+            if( !error ) {
+                NSData *downloadedData = [NSData dataWithContentsOfURL:location];
+                LOG( @"---- DOWNLOAD SUCCEEDED ---" );
+                [self handleResponseData:downloadedData];
+            }
+            else {
+                LOG( @"---- DOWNLOAD ERROR ... %@", error );
+            }
         }];
         [downloadDataTask resume];
-    }
-    else {
-        LOG( @"---- DOWNLOAD ERROR ... %@", error );
-    }
-    
     /*
     NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:NO];
     [connection setDelegateQueue:[NSOperationQueue currentQueue]];
@@ -178,7 +178,14 @@
 - (void)handleResponseData:(NSData *)data {
     LOG( @"HANDLING GOOGLE CALENDAR EVENTS..." );
     NSError *error;
-    NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+    NSDictionary *response = nil;
+    
+    @try {
+        response = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+    }
+    @catch (NSException *exception) {
+        response = nil;
+    }
 
     if (!response) {
         if (DEBUG) NSLog(@"failed to parse json data: %@", error);
@@ -216,8 +223,7 @@
 
 }
 
-- (void)cancel
-{
+- (void)cancel {
     if (_connection) {
         [_connection cancel];
     }
@@ -225,13 +231,11 @@
     [super cancel];
 }
 
-- (NSArray *)events
-{
+- (NSArray *)events {
     return [[_mutableEvents copy] autorelease];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
-{
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
 
         NSHTTPURLResponse *httpurlResponse = (NSHTTPURLResponse *) response;
@@ -248,13 +252,11 @@
     self.data = [NSMutableData data];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
-{
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     [_data appendData:data];
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
-{
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     self.connection = nil;
 
     if ([_data length] > 0) {

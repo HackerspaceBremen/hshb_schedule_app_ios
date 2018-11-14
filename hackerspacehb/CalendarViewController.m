@@ -150,6 +150,7 @@
         [self.refreshControl endRefreshing];
         [self alertWithTitle:@"Netzverbindung" message:@"Derzeit ist keine Netzverbindung möglich. Bitte prüfe ob eine Internetverbindung besteht und probiere es nocheinmal." callback:^{
             self.isDisplaysNoNetworkAlert = NO;
+            [statusButton setUserInteractionEnabled:NO];
         }];
     }
 }
@@ -208,6 +209,7 @@
 - (void) updateAfterRefreshUI {
     [self.refreshControl endRefreshing];
     [self.tableView reloadData];
+    [statusButton setUserInteractionEnabled:YES];
 }
 
 - (void) refreshCalendarDataFromLocalCachePath:(NSString*)pathToStoredFile {
@@ -653,6 +655,9 @@
                 self.isDisplaysNoStatusNoNetworkAlert = YES;
                 [self alertWithTitle:@"Hinweis" message:@"Es konnte nicht ermittelt werden, ob der Hackerspace gerade geöffnet oder geschlossen ist.\n\nUnter Umständen ist die Netzverbindung gestört, oder der Statusserver nicht erreichbar.\n\nProbiere es später noch einmal!" callback:^{
                     self.isDisplaysNoStatusNoNetworkAlert = NO;
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self displayAlertNoConnection];
+                    });
                 }];
             }
         }
