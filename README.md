@@ -32,7 +32,13 @@ Die App stellt **folgende Funktionen** bereit:
 
 ## Versionen
 
-* Version 2.3 (??.12.2017)
+* Version 3.0 (15.11.2018)
+	- Hintergrundstatusaktualisierung für Space Status
+	- Benachrichtigung vor Veranstaltungsbeginn für Favoriten
+	- Weitergabe von Veranstaltungstipps verbessert
+	- Legacy Netzwerkstack ausgetauscht
+	- Legacy 3rd Party Code ausgetauscht/entfernt
+* Version 2.3 (4.12.2017)
 	- Anpassungen für iPhone X und iOS 11
 	- Verbesserter "Gemerkt"-Indikator
 	- Schutz der Zugangsdaten mit Passwort/Biometrie
